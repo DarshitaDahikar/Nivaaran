@@ -166,6 +166,7 @@ button.stat:hover{border-color:var(--pri);box-shadow:var(--sh2);transform:transl
 .tl li{flex:1;position:relative;text-align:center;font-size:.75rem;color:var(--mut);padding-top:24px;min-width:0}
 .tl li::before{content:"";position:absolute;top:9px;left:-50%;width:100%;height:3px;background:var(--line)}
 .tl li:first-child::before{display:none}
+.protonote{background:#fff7e6;border-left:4px solid #f28c28;padding:8px 12px;border-radius:8px;font-size:13px;margin:0 0 14px;color:#5b3a00}
 .tl .dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid var(--line2);z-index:1}
 .tl li.done{color:var(--ink)}.tl li.done .dot{background:var(--ok);border-color:var(--ok)}.tl li.done::before,.tl li.now::before{background:var(--ok)}
 .tl li.now{color:var(--pri);font-weight:700}.tl li.now .dot{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-s)}
@@ -388,7 +389,7 @@ const SRC={report:"the school’s weekly report",visit:"a verifier visit",school
 const PLACES=["Corridor outside the toilets","Classroom block","Outside the toilet area","Water point","Other place"];
 const ST_UN=["Assigned","No owner accepted","Overdue, escalated"];
 const ST_WAIT=["Evidence submitted","Fix recorded","Closed on evidence"];
-const KEY="nivaaran-prototype-v6";
+const KEY="nivaaran-prototype-v7";
 const YN=["yes","no"];
 const isV=()=>S.role==="V1"||S.role==="V2";
 const nextRev=t=>t.last==="V1"?"V2":"V1";
@@ -398,7 +399,7 @@ const pad=n=>n===1?"pad":"pads";
 let S,RO=false,VO=false;
 
 function base(){const d={};Object.keys(SCH).forEach(s=>d[s]={rep:null,obs:null,ledger:[]});
- return{day:0,off:false,role:"HM",school:"A",block:1,n:1,closedN:0,d:d,it:[],err:{},dr:{},log:[],ui:{page:"problem",step:0,reveal:false,lane:"",sub:{},flt:"all"},demo:0,
+ return{day:0,off:false,role:"HM",school:"A",block:1,n:1,closedN:0,ph:[],d:d,it:[],err:{},dr:{},log:[],ui:{page:"problem",step:0,reveal:false,lane:"",sub:{},flt:"all"},demo:0,
  cfg:{vis:2,spotN:2,recLimit:2,recDays:30,accDays:1,stale:7,week:7,retain:30,verDays:7,
   la:{tap:{n:"Leaking tap, water still available",d:5},bulb:{n:"Broken bulb in a corridor outside the toilets",d:3},wall:{n:"Minor wall or floor repair outside toilet and pad areas",d:14},fit:{n:"Loose or worn fitting that does not affect privacy or use",d:7}},
   b:{a:3,tfix:5,twork:14,pstock:3,disc:3,sup:7,spot:3,other:7,rec:7}}}}
@@ -411,6 +412,7 @@ function deny(m){ev(SH[S.role],"ACCESS DENIED: "+m,"deny",S.school,"");S.flash="
 function need(r,m){r=[].concat(r);if(r.includes(S.role))return true;deny(m);return false}
 function setSt(t,st){t.st=st;t.since=S.day}
 function grab(){document.querySelectorAll("#app select[id],#app input[id]:not([type=file])").forEach(e=>{S.dr[e.id]=e.value})}
+function hs(x){let h=0;for(let i=0;i<x.length;i+=37)h=(h*31+x.charCodeAt(i))|0;return h}
 function clearDr(){Object.keys(S.dr).forEach(k=>{if(!k.startsWith("photo_"))delete S.dr[k]})}
 function dv(id){return S.dr[id]===undefined?"":S.dr[id]}
 function sel(id,opts,ph){const v=dv(id);return `<select id="${id}" aria-label="${ph||id}"><option value="">${ph||"Choose"}</option>${opts.map(o=>{const a=Array.isArray(o)?o:[o,o];return `<option value="${a[0]}"${a[0]===v?" selected":""}>${a[1]}</option>`}).join("")}</select>`}
@@ -523,7 +525,9 @@ function act(a,i){
  case "larep":if(!need("HM","Only the headmaster marks repair started."))break;setSt(t,"In repair");th(t,"Headmaster","repair started.");break;
  case "laclose":{if(!need("HM","Only the headmaster closes a school-level issue."))break;
   const ph=S.dr["photo_"+t.id];if(!ph){S.err[t.id]="Please add a photo of the repair first.";break}
-  S.err[t.id]="";t.photo=ph;delete S.dr["photo_"+t.id];t.photoDay=S.day;t.photoQ=S.off;setSt(t,"Closed (school-level)");t.closedDay=S.day;S.closedN++;t.sample=S.closedN%S.cfg.spotN===0;
+  if(dv("np_"+t.id)!=="no"){S.err[t.id]="Please confirm that no person appears in the photo.";break}
+  {const hh=hs(ph);if(S.ph.includes(hh)){S.err[t.id]="This photo was already used. Take a new photo of the repair as it is today.";break}S.ph.push(hh)}
+  S.err[t.id]="";t.photo=ph;delete S.dr["photo_"+t.id];delete S.dr["np_"+t.id];t.photoDay=S.day;t.photoQ=S.off;setSt(t,"Closed (school-level)");t.closedDay=S.day;S.closedN++;t.sample=S.closedN%S.cfg.spotN===0;
   th(t,"Headmaster",`repair photo added (device day ${S.day}${S.off?", will sync later":""}). Closed at school level${S.day<=t.due?" on time":" late"}.`);S.msg="Closed. This small repair is done.";break}
  case "obs":{if(!need(["V1","V2"],"Only a verifier records a visit."))break;
   if(s===HOME[S.role]){deny("A verifier cannot check their own school.");break}
@@ -552,7 +556,9 @@ function act(a,i){
  case "fixev":{if(!need("HM","Only the school submits this evidence."))break;
   const ph=S.dr["photo_"+t.id],sf=dv("st_"+t.id).trim();
   if(!ph||!sf){S.err[t.id]="Please add both a name and a photo.";break}
-  S.err[t.id]="";t.photo=ph;t.staff=sf;delete S.dr["photo_"+t.id];setSt(t,"Evidence submitted");
+  if(dv("np_"+t.id)!=="no"){S.err[t.id]="Please confirm that no person appears in the photo.";break}
+  {const hh=hs(ph);if(S.ph.includes(hh)){S.err[t.id]="This photo was already used. Take a new photo of the cupboard as it is today.";break}S.ph.push(hh)}
+  S.err[t.id]="";t.photo=ph;t.staff=sf;delete S.dr["photo_"+t.id];delete S.dr["np_"+t.id];setSt(t,"Evidence submitted");
   th(t,"Headmaster",`fix submitted with a photo of the cupboard and designated staff (${sf}). ${SH[nextRev(t)]} reviews it at their desk. No trip needed.`);S.msg=`Sent. Next: view the demo as ${PILL[nextRev(t)]} to check it.`;break}
  case "expl":{if(!need("HM","Only the school adds ledger explanations."))break;
   const n=Math.round(+dv("ex_"+t.id));if(!(n>0)){S.err[t.id]="Please enter how many pads.";break}
@@ -574,10 +580,12 @@ function act(a,i){
   reopen(t,`${SH[S.role]}: a later check found the problem back`);break;
  case "rmph":delete S.dr["photo_"+i];break;
  case "cfgsave":{if(!need("AD","Only the platform administrator under departmental authority changes settings."))break;
+  const why=dv("c_why").trim();if(!why){S.err.c="A reason is required for every rule change. It is saved in the audit log.";break}
+  const flat=o=>{const r={};(function w(x,p){for(const k in x){if(x[k]&&typeof x[k]==="object")w(x[k],p+k+".");else r[p+k]=x[k]}})(o,"");return r},before=flat(S.cfg);
   const g=(id,d)=>{const v=Math.round(+dv(id));return v>=0&&dv(id)!==""?v:d},c=S.cfg;
   c.vis=dv("c_vis")==="1"?1:2;["spotN","recLimit","recDays","accDays","stale","week","retain","verDays"].forEach(k=>{c[k]=Math.max(1,g("c_"+k,c[k]))});
   Object.keys(c.la).forEach(k=>c.la[k].d=Math.max(1,g("c_la_"+k,c.la[k].d)));Object.keys(c.b).forEach(k=>c.b[k]=Math.max(1,g("c_b_"+k,c.b[k])));
-  ev("Platform administrator","Department settings changed (placeholders updated).","meta");S.err.c="Settings saved. New values apply to new items and later ticks.";break}
+  {const after=flat(S.cfg),ch=Object.keys(after).filter(k=>after[k]!==before[k]).map(k=>k+" "+before[k]+" to "+after[k]);delete S.dr.c_why;ev("Platform administrator","Department settings changed: "+(ch.join("; ")||"no change")+". Reason: "+why,"meta")}S.err.c="Settings saved. New values apply to new items and later ticks.";break}
  case "tab":S.ui.sub[S.role]=i;break;
  case "flt":S.ui.flt=i;break;
  case "yn":{const p=i.split(":");S.dr[p[0]]=p[1];break}
@@ -725,7 +733,8 @@ function statCard(i,label,val,tn,hint,page){const inner=`<span class="si">${ic(i
  return page?`<button class="stat s-${tn}" data-ui="go" data-page="${page}">${inner}</button>`:`<div class="stat s-${tn}">${inner}</div>`}
 function ynb2(id){const v=dv(id);return `<div class="yn" role="group" aria-label="Answer"><button type="button" class="ynb y" data-a="yn" data-i="${id}:yes" aria-pressed="${v==="yes"}">${ic("check")}Yes</button><button type="button" class="ynb n" data-a="yn" data-i="${id}:no" aria-pressed="${v==="no"}">${ic("x")}No</button></div>`}
 function choice(id,opts){const v=dv(id);return `<div class="opts" role="group">${opts.map(([k,l])=>`<button type="button" class="opt" data-a="yn" data-i="${id}:${k}" aria-pressed="${v===k}">${v===k?ic("check","sm"):""}${l}</button>`).join("")}</div>`}
-function photoField(id,label){const p=S.dr["photo_"+id];
+function photoField(id,label){return photoField0(id,label)+`<div class="field"><label class="lbl" for="np_${id}">Is any person in the photo?</label><select id="np_${id}" class="inp"><option value="">Choose</option><option value="no"${dv("np_"+id)==="no"?" selected":""}>No, only the fixture</option></select></div>`}
+function photoField0(id,label){const p=S.dr["photo_"+id];
  return `<div class="field"><span class="lbl">${label}</span>${p?`<div class="pv"><img src="${p}" alt="Preview of your photo"><button class="btn ghost sm" data-a="rmph" data-i="${id}">${ic("x","sm")}Remove photo</button></div>`
  :S.ui.loading===id?`<div class="upload loading">${ic("loader","spin")}<span><b>Preparing photo…</b><small>Making it smaller so it sends quickly.</small></span></div>`
  :`<input class="sr" id="ph_${id}" type="file" accept="image/*" capture="environment"><label class="upload" for="ph_${id}">${ic("camera")}<span><b>Take or choose a photo</b><small>Fixture only. Never photograph people.</small></span></label>`}</div>`}
@@ -859,14 +868,14 @@ const repBadge=x=>`<span class="badge b-${x==="Reported and verified"?"ok":x==="
 function dashBO(){const ss=schoolsOf(S.block),T=scopeB("BO"),b=buckets(T),m=mineT("BO"),crit=T.filter(t=>bk(t)==="bad");
  let h=ph("Dashboard",`Demo Block ${S.block}. ${INFO.BO}`);
  if(m.length)h+=`<div class="cta warn">${ic("listc")}<div><b>${m.length} task${m.length>1?"s":""} waiting for you</b><p>Schools could not fix these. Accept them so help arrives.</p></div>${go("mine","Open my tasks","pri","right")}</div>`;
- h+=`<div class="stats">${statCard("school","Schools",ss.length,"navy","In this block","schools")}${statCard("door","Toilets working",`${toiletOK(ss)}/${ss.length}`,"ok","Latest report or visit","schools")}${statCard("clock","Pending",b.warn+b.info,"warn","Open, on time","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","Need attention now","all")}${statCard("ok","Resolved",b.ok,"ok","Closed tasks","all")}</div>`;
+ h+=`<div class="stats">${statCard("school","Schools",ss.length,"navy","In this block","schools")}${statCard("door","Toilets working",`${(n=>n?toiletOK(ss)+" of "+n:"No data")(ss.filter(x=>D(x).rep||D(x).obs).length)}`,"ok","Schools with a report or visit. No data is not a failure","schools")}${statCard("clock","Pending",b.warn+b.info,"warn","Open, on time","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","Need attention now","all")}${statCard("ok","Resolved",b.ok,"ok","Closed tasks","all")}</div>`;
  h+=`<div class="g2">${donut(b,"Task status in this block")}${bars("Open tasks per school",ss.map(s=>{const x=stat(s);return [SCH[s].n,x.open,x.over?"bad":"info"]}),"Red bars have overdue tasks.")}</div>`;
  h+=`<div class="g2"><div class="card"><h3 class="ch">${ic("alert")}Needs attention</h3>${crit.length?`<ul class="tlist">${crit.map(trow).join("")}</ul>${go("all","See all block tasks","sec sm")}`:empty("ok","Nothing overdue","All tasks in this block are on time.")}</div><div class="card"><h3 class="ch">${ic("activity")}Recent activity</h3>${actList(5)}${moreLog()}</div></div>`;
  return h}
 function dashDO(){const all=Object.keys(SCH),T=scopeB("DO"),b=buckets(T),m=mineT("DO"),crit=T.filter(open);
  let h=ph("Dashboard",`Demo District. ${INFO.DO}`);
  if(m.length)h+=`<div class="cta warn">${ic("listc")}<div><b>${m.length} task${m.length>1?"s":""} reached the district</b><p>Nobody fixed these at block level.</p></div>${go("mine","Open my tasks","pri","right")}</div>`;
- h+=`<div class="stats">${statCard("chart","Blocks",2,"navy",`${all.length} schools`,"blocks")}${statCard("door","Toilets working",`${toiletOK(all)}/${all.length}`,"ok","Latest report or visit","blocks")}${statCard("up","Sent to district",T.filter(open).length,"warn","Still open","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","At district level","all")}${statCard("ok","Resolved",b.ok,"ok","Closed after reaching district","all")}</div>`;
+ h+=`<div class="stats">${statCard("chart","Blocks",2,"navy",`${all.length} schools`,"blocks")}${statCard("door","Toilets working",`${(n=>n?toiletOK(all)+" of "+n:"No data")(all.filter(x=>D(x).rep||D(x).obs).length)}`,"ok","Schools with a report or visit. No data is not a failure","blocks")}${statCard("up","Sent to district",T.filter(open).length,"warn","Still open","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","At district level","all")}${statCard("ok","Resolved",b.ok,"ok","Closed after reaching district","all")}</div>`;
  h+=`<div class="g2">${bars("Open tasks per school, by block",[1,2].map(bl=>{const ss=schoolsOf(bl),o=ss.reduce((a,s)=>a+stat(s).open,0);return ["Demo Block "+bl,+(o/ss.length).toFixed(1),ss.some(s=>stat(s).over)?"bad":"info"]}),"Blocks have different numbers of schools, so this compares per school.")}${donut(b,"Tasks that reached the district")}</div>`;
  h+=`<div class="g2"><div class="card"><h3 class="ch">${ic("alert")}Critical unresolved problems</h3>${crit.length?`<ul class="tlist">${crit.map(trow).join("")}</ul>`:empty("ok","Nothing open at district level","")}</div><div class="card"><h3 class="ch">${ic("activity")}Recent activity</h3>${actList(5)}${moreLog()}</div></div>`;
  return h}
@@ -969,7 +978,7 @@ function pgSettings(){const c=S.cfg,I=(id,v,l,hint)=>`<div class="set"><label fo
 <div class="card"><h3 class="ch">${ic("clipboard")}Weekly check and photos</h3>${I("c_week",c.week,"Weekly check every (days)")}${I("c_stale",c.stale,"A weekly check is old after (days)")}${I("c_retain",c.retain,"Keep photos for (days)","Counted from when the problem is closed")}${I("c_verDays",c.verDays,"A verifier check is late after (days)")}</div>
 <div class="card"><h3 class="ch">${ic("wrench")}Small repairs</h3>${I("c_spotN",c.spotN,"Spot-check every Nth closed repair","1 means every repair is checked")}${I("c_recLimit",c.recLimit,"Times a repair can repeat before it is sent up")}${I("c_recDays",c.recDays,"…counted over how many days")}${Object.keys(c.la).map(k=>I("c_la_"+k,c.la[k].d,"Days to fix: "+c.la[k].n)).join("")}</div>
 <div class="card"><h3 class="ch">${ic("flag")}Follow-up tasks</h3>${I("c_accDays",c.accDays,"Days to accept a task","After this it moves up a level")}${Object.keys(c.b).map(k=>I("c_b_"+k,c.b[k],"Days to fix: "+FIXN[k])).join("")}</div>
-${S.err.c?`<div class="callout ok">${ic("ok")}<div>${S.err.c}</div></div>`:""}<div class="acts"><button class="btn pri lg" data-a="cfgsave">${ic("check")}Save rules</button></div>`}
+${S.err.c?`<div class="callout ${/required/.test(S.err.c)?"bad":"ok"}">${ic(/required/.test(S.err.c)?"alert":"ok")}<div>${S.err.c}</div></div>`:""}<div class="card"><div class="set"><label for="c_why"><b>Reason for the change</b><small>Required. It is saved in the audit log.</small></label><input id="c_why" type="text" value="${esc(dv("c_why"))}"></div></div><div class="acts"><button class="btn pri lg" data-a="cfgsave">${ic("check")}Save rules</button></div>`}
 function pgOverdue(){const dl=S.it.filter(t=>t.lane==="B"&&open(t)&&t.dept);
  return ph("Long-overdue list","Problems still not fixed after reaching the top level. Only school, type and age are shown.")+`<div class="card">${dl.length?`<div class="tw"><table class="tbl"><thead><tr><th>School</th><th>Problem</th><th>Who must act</th><th>Days open</th></tr></thead><tbody>${dl.map(t=>`<tr><td><b>${SCH[t.s].n}</b></td><td>${esc(t.type)}</td><td>${SH[t.owner]}</td><td><span class="txt-bad">${S.day-t.day0}</span></td></tr>`).join("")}</tbody></table></div>`:empty("ok","Nothing on the list","")}</div>`}
 function pgLog(r){const lg=S.log.filter(visible).slice(0,200);
@@ -985,7 +994,7 @@ function render(){
  document.body.classList.toggle("col",!!S.ui.col);
  document.body.classList.toggle("drawer",!!S.ui.drawer);
  VO=sub==="all";
- document.getElementById("app").innerHTML=`<div class="page">${pageHtml(r,sub)}</div><footer class="foot">${ic("shield","sm")}<span>Practice version with made-up schools and people. No girl’s name or personal data is ever collected. Photos show fixtures only, never people.</span></footer>`;
+ document.getElementById("app").innerHTML=`<div class="page"><div class="protonote"><b>Workflow demonstration.</b> Fictional schools, made-up numbers, simulated people. It shows that the workflow can run. It does not show how often such gaps occur, or that Nivaaran closes them. Deadlines and limits are placeholders that the department would set.</div>${pageHtml(r,sub)}</div><footer class="foot">${ic("shield","sm")}<span>Practice version with made-up schools and people. No girl’s name or personal data is ever collected. Photos show fixtures only, never people.</span></footer>`;
  VO=false;
  save()}
 
