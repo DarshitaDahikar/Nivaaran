@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nivaaran · School sanitation accountability</title>
+<meta name="description" content="Nivaaran prototype: report, assign, escalate and independently verify school sanitation problems.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0b2545;--navy2:#13315c;--navy3:#1b3f70;--pri:#1d5fbf;--pri-d:#174ea0;--pri-s:#e8f0fc;
+--bg:#f3f5f9;--card:#fff;--ink:#15233a;--mut:#5b6b82;--line:#e2e7ef;--line2:#cbd5e2;--soft:#f8fafc;
+--ok:#16a34a;--ok-d:#15803d;--ok-s:#e7f6ec;--bad:#dc2626;--bad-d:#b91c1c;--bad-s:#fdecec;
+--warn:#ea8a0c;--warn-d:#b45309;--warn-s:#fff3e3;--info:#2563eb;--info-d:#1d4ed8;--info-s:#e8f0fe;--muted-s:#eef1f5;
+--r:12px;--sh:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.08);--sh2:0 12px 32px rgba(11,37,69,.18);--side:260px;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{line-height:1.25}
+button,input,select{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.ic{width:20px;height:20px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.ic.sm{width:16px;height:16px}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.mut{color:var(--mut)}.sm{font-size:.85rem}
+.txt-bad{color:var(--bad-d);font-weight:700}
+
+/* ---------- sidebar ---------- */
+.side{position:fixed;top:0;bottom:0;left:0;width:var(--side);background:var(--navy);color:#dbe5f3;display:flex;flex-direction:column;z-index:40;overflow-y:auto;transition:width .2s ease,transform .2s ease}
+.brand{display:flex;align-items:center;gap:10px;padding:16px 12px 12px 14px}
+.brand img{width:44px;height:44px;border-radius:10px;background:#fff;padding:2px;object-fit:contain;flex:0 0 auto}
+.brand b{display:block;color:#fff;font-size:1.15rem;letter-spacing:.02em}
+.brand small{display:block;color:#9fb3cf;font-size:.75rem;line-height:1.3}
+.colbtn,.closebtn{margin-left:auto;background:transparent;border:0;color:#9fb3cf;width:38px;height:38px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto}
+.colbtn:hover,.closebtn:hover{background:var(--navy2);color:#fff}
+.closebtn{display:none}
+.who{margin:4px 12px 10px;padding:12px;background:var(--navy2);border-radius:12px}
+.who label{display:block;font-size:.72rem;color:#9fb3cf;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700}
+.who select{width:100%;background:#fff;color:var(--ink);border:0;border-radius:8px;min-height:42px;padding:6px 8px}
+.who p{margin:8px 0 0;font-size:.82rem;color:#c6d4e8;line-height:1.45}
+.nav{list-style:none;margin:0;padding:4px 10px;display:flex;flex-direction:column;gap:2px}
+.nav button{width:100%;display:flex;align-items:center;gap:12px;background:transparent;border:0;color:#c6d4e8;padding:10px 12px;border-radius:10px;min-height:46px;text-align:left;font-size:.95rem}
+.nav button:hover{background:var(--navy2);color:#fff}
+.nav button[aria-current=page]{background:var(--pri);color:#fff;font-weight:700}
+.nav .cnt{margin-left:auto;background:rgba(255,255,255,.16);color:#fff;font-size:.75rem;font-weight:700;border-radius:999px;padding:1px 8px;min-width:24px;text-align:center}
+.nav .cnt.due{background:var(--warn)}
+.demo{margin-top:auto;padding:14px 12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.demo h4{margin:0 0 8px;font-size:.72rem;color:#9fb3cf;text-transform:uppercase;letter-spacing:.07em}
+.dday{display:flex;align-items:center;gap:6px;font-size:.9rem;margin-bottom:8px;color:#e6eef9}
+.demo .row{display:flex;gap:6px;margin-bottom:6px}
+.dbtn{flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--navy2);color:#e6eef9;border:1px solid rgba(255,255,255,.1);border-radius:8px;min-height:40px;padding:4px 8px;font-size:.85rem;white-space:nowrap}
+.dbtn:hover{background:var(--navy3)}
+.dbtn.danger{color:#fecaca}
+.dbtn:disabled{opacity:.45;cursor:not-allowed}
+.scrim{display:none}
+.mainwrap{margin-left:var(--side);min-height:100vh;display:flex;flex-direction:column;transition:margin .2s ease}
+@media (min-width:901px){
+ body.col .side{width:76px}
+ body.col .mainwrap{margin-left:76px}
+ body.col .hide-col{display:none!important}
+ body.col .brand{flex-direction:column;padding:14px 8px}
+ body.col .colbtn{margin:0}
+ body.col .colbtn .ic{transform:rotate(180deg)}
+ body.col .nav{padding:4px 12px}
+ body.col .nav button{justify-content:center;padding:10px}
+ body.col .nav .lbl-t,body.col .nav .cnt{display:none}
+}
+
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 24px;min-height:66px;flex-wrap:wrap}
+.menu{display:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--ink);place-items:center}
+.tt h2{margin:0;font-size:1.1rem}
+.tt .crumb{color:var(--mut);font-size:.82rem}
+.ctx{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctx select{border:1px solid var(--line2);border-radius:10px;min-height:42px;padding:6px 10px;background:#fff;color:var(--ink);max-width:100%}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:.85rem;font-weight:700;background:var(--muted-s);color:var(--ink);white-space:nowrap}
+.chip.on{background:var(--ok-s);color:var(--ok-d)}.chip.off{background:var(--warn-s);color:var(--warn-d)}
+
+/* ---------- page ---------- */
+main{padding:24px;max-width:1240px;width:100%;margin:0 auto;flex:1}
+.page{animation:fade .18s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.ph h1{margin:0;font-size:1.6rem}
+.ph h1:focus{outline:none}
+.ph p{margin:4px 0 0;color:var(--mut);max-width:72ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px;margin-bottom:16px;min-width:0}
+.ch{margin:0 0 12px;font-size:1.05rem;display:flex;align-items:center;gap:8px}
+.ch .ic{color:var(--pri)}
+.ch-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ch-row .ch{margin:0}
+.sec-t{font-size:1.15rem;margin:24px 0 12px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;margin-bottom:16px}
+.g2>.card{margin:0}
+.foot{display:flex;gap:8px;align-items:flex-start;color:var(--mut);font-size:.82rem;margin:28px 0 8px;padding-top:16px;border-top:1px solid var(--line)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
+.stat{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px;color:inherit;text-align:left;width:100%;min-width:0}
+button.stat{transition:border-color .15s,box-shadow .15s,transform .15s}
+button.stat:hover{border-color:var(--pri);box-shadow:var(--sh2);transform:translateY(-1px)}
+.si{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto}
+.s-ok .si{background:var(--ok-s);color:var(--ok-d)}.s-bad .si{background:var(--bad-s);color:var(--bad-d)}
+.s-warn .si{background:var(--warn-s);color:var(--warn-d)}.s-info .si{background:var(--info-s);color:var(--info-d)}
+.s-navy .si{background:#e6ecf5;color:var(--navy)}
+.sb{min-width:0}
+.sv{display:block;font-size:1.75rem;font-weight:700;line-height:1.1}
+.sl{display:block;font-weight:700;font-size:.93rem}
+.stat small{display:block;color:var(--mut);font-size:.8rem}
+
+/* badges and pills */
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.badge .ic{width:14px;height:14px}
+.b-ok{background:var(--ok-s);color:var(--ok-d)}.b-bad{background:var(--bad-s);color:var(--bad-d)}
+.b-warn{background:var(--warn-s);color:var(--warn-d)}.b-info{background:var(--info-s);color:var(--info-d)}
+.b-muted{background:var(--muted-s);color:var(--mut)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:.85rem;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.pill .ic{width:14px;height:14px}
+.p-ok{background:var(--ok-s);color:var(--ok-d)}.p-bad{background:var(--bad-s);color:var(--bad-d)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid transparent;font-weight:700;font-size:.95rem;transition:background .15s,border-color .15s;text-align:center}
+.btn.pri{background:var(--pri);color:#fff}.btn.pri:hover{background:var(--pri-d)}
+.btn.sec{background:#fff;color:var(--pri);border-color:var(--line2)}.btn.sec:hover{background:var(--pri-s);border-color:var(--pri)}
+.btn.danger{background:#fff;color:var(--bad-d);border-color:#f0b4b4}.btn.danger:hover{background:var(--bad-s)}
+.btn.dangerf{background:var(--bad);color:#fff}.btn.dangerf:hover{background:var(--bad-d)}
+.btn.ghost{background:transparent;color:var(--mut);border-color:var(--line)}.btn.ghost:hover{background:var(--muted-s)}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:.85rem}
+.btn.lg{min-height:52px;padding:10px 22px;font-size:1.02rem}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.link{background:none;border:0;color:var(--pri);font-weight:700;padding:8px 0 0;display:inline-flex;align-items:center;gap:4px}
+.link:hover{text-decoration:underline}
+
+/* callouts */
+.callout{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:14px 16px;margin:0 0 16px}
+.callout .ic{margin-top:2px}
+.callout p{margin:2px 0 0}
+.callout.ok{background:var(--ok-s);color:#14532d}.callout.warn{background:var(--warn-s);color:#7c2d12}
+.callout.bad{background:var(--bad-s);color:#7f1d1d}.callout.info{background:var(--info-s);color:#1e3a8a}
+.card .callout{margin:12px 0}
+.cta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-radius:var(--r);padding:16px 18px;margin-bottom:16px;border:1px solid}
+.cta.warn{background:var(--warn-s);border-color:#f6d19b;color:#7c2d12}
+.cta.ok{background:var(--ok-s);border-color:#b7e2c4;color:#14532d}
+.cta.info{background:var(--info-s);border-color:#bcd2f7;color:#1e3a8a}
+.cta>.ic{width:30px;height:30px}
+.cta>div{flex:1 1 220px}
+.cta p{margin:2px 0 0;opacity:.85}
+.ferr{display:flex;gap:8px;align-items:flex-start;color:var(--bad-d);background:var(--bad-s);border-radius:8px;padding:10px 12px;font-size:.92rem;margin:10px 0 0;font-weight:700}
+.wait{display:flex;gap:8px;align-items:center;color:var(--mut);font-size:.92rem;margin:14px 0 0;padding:10px 12px;background:var(--soft);border-radius:8px}
+
+/* tasks */
+.task{border-left:5px solid var(--warn)}
+.t-ok{border-left-color:var(--ok)}.t-bad{border-left-color:var(--bad)}.t-info{border-left-color:var(--info)}.t-muted{border-left-color:var(--line2)}
+.task-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.task h3{margin:4px 0 0;font-size:1.1rem}
+.eyebrow{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.eyebrow .ic{width:14px;height:14px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.det{color:var(--mut);margin:8px 0 0}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:12px 0;padding:12px 14px;background:var(--soft);border-radius:10px}
+.meta dt{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.meta dt .ic{width:15px;height:15px}
+.meta dd{margin:3px 0 0;font-size:.93rem}
+.tl{list-style:none;display:flex;margin:16px 0 4px;padding:0}
+.tl li{flex:1;position:relative;text-align:center;font-size:.75rem;color:var(--mut);padding-top:24px;min-width:0}
+.tl li::before{content:"";position:absolute;top:9px;left:-50%;width:100%;height:3px;background:var(--line)}
+.tl li:first-child::before{display:none}
+.tl .dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid var(--line2);z-index:1}
+.tl li.done{color:var(--ink)}.tl li.done .dot{background:var(--ok);border-color:var(--ok)}.tl li.done::before,.tl li.now::before{background:var(--ok)}
+.tl li.now{color:var(--pri);font-weight:700}.tl li.now .dot{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-s)}
+.tl li.now.late{color:var(--bad-d)}.tl li.now.late .dot{border-color:var(--bad);box-shadow:0 0 0 4px var(--bad-s)}
+.ladder{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:.8rem;margin:10px 0 0;color:var(--mut)}
+.ladder .ic{width:14px;height:14px}
+.lstep{padding:2px 8px;border-radius:6px;background:var(--muted-s)}
+.lstep.cur{background:var(--navy);color:#fff;font-weight:700}
+.evid{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;background:var(--info-s);border-radius:10px;padding:12px;margin:12px 0 0}
+.evid>div{flex:1 1 200px}
+.evid b{display:flex;align-items:center;gap:6px}
+.evid p{margin:4px 0 0}
+.evid img{max-width:200px;width:100%;border-radius:8px;border:1px solid var(--line)}
+.fixbox{border:1px dashed var(--line2);border-radius:12px;padding:14px;margin-top:14px;background:#fbfcfe}
+.fixbox h4{margin:0 0 6px;font-size:1rem}
+details.hist{margin-top:14px;border-top:1px solid var(--line);padding-top:6px}
+details.hist summary{cursor:pointer;color:var(--mut);font-weight:700;font-size:.88rem;min-height:36px;display:flex;align-items:center}
+details.hist ol{margin:6px 0 0;padding-left:20px;font-size:.86rem;color:var(--mut)}
+details.hist li{margin-bottom:4px;overflow-wrap:anywhere}
+
+/* forms */
+.field{margin:12px 0}
+.lbl{display:block;font-weight:700;font-size:.93rem;margin-bottom:6px}
+input[type=text],input[type=number],select.inp{width:100%;max-width:420px;border:1px solid var(--line2);border-radius:10px;min-height:46px;padding:8px 12px;background:#fff;color:var(--ink)}
+input[type=text]:focus,input[type=number]:focus,select.inp:focus{border-color:var(--pri);outline:3px solid var(--pri-s);outline-offset:0}
+.upload{display:flex;align-items:center;gap:12px;border:2px dashed var(--line2);border-radius:12px;padding:14px;cursor:pointer;background:#fff;max-width:420px;color:var(--pri)}
+.upload:hover{border-color:var(--pri);background:var(--pri-s)}
+.upload span b{display:block}
+.upload small{display:block;color:var(--mut)}
+.upload .ic{width:28px;height:28px}
+.upload.loading{color:var(--mut);cursor:progress}
+input[type=file]:focus-visible+.upload,.upload:focus-within{outline:3px solid #f59e0b}
+.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.pv{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.pv img{max-width:200px;width:100%;border-radius:10px;border:1px solid var(--line)}
+.prog{margin-bottom:14px}
+.prog-t{font-size:.88rem;color:var(--mut);font-weight:700;margin-bottom:6px}
+.prog-b{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
+.prog-b span{display:block;height:100%;background:var(--pri);border-radius:999px;transition:width .25s}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.q.answered{border-color:#bcd2f7;background:#f9fbff}
+.qh{display:flex;gap:12px;align-items:flex-start;flex:1 1 280px;min-width:0}
+.qh p{margin:2px 0 0;color:var(--mut);font-size:.9rem}
+.qn{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:.85rem;font-weight:700;flex:0 0 auto}
+.yn{display:flex;gap:8px}
+.ynb{min-width:108px;min-height:52px;border-radius:12px;border:2px solid var(--line2);background:#fff;font-weight:700;font-size:1rem;display:inline-flex;align-items:center;justify-content:center;gap:6px;color:var(--ink)}
+.ynb:hover{border-color:var(--pri)}
+.ynb.y[aria-pressed=true]{background:var(--ok);border-color:var(--ok);color:#fff}
+.ynb.n[aria-pressed=true]{background:var(--bad);border-color:var(--bad);color:#fff}
+.big-num{max-width:200px!important;font-size:1.15rem;min-height:52px!important}
+.sub-q{flex-basis:100%;padding-top:10px;border-top:1px dashed var(--line)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line2);background:#fff;border-radius:10px;padding:8px 14px;min-height:46px;text-align:left;color:var(--ink);font-weight:700;font-size:.93rem}
+.opt:hover{border-color:var(--pri)}
+.opt[aria-pressed=true]{border-color:var(--pri);background:var(--pri-s);color:var(--pri-d)}
+.opt.dis{color:var(--mut);background:var(--muted-s);border-style:dashed;cursor:not-allowed}
+.qb{padding:14px 0;border-bottom:1px solid var(--line)}
+.qb .qh{margin-bottom:10px;align-items:center}
+.seg{display:inline-flex;background:var(--muted-s);border-radius:10px;padding:4px;gap:4px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;border-radius:8px;padding:6px 14px;min-height:40px;font-weight:700;color:var(--mut)}
+.seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:var(--sh)}
+.set{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.set:last-child{border-bottom:0}
+.set label{flex:1 1 260px}
+.set small{display:block;color:var(--mut);font-size:.82rem}
+.set input{max-width:120px}
+.set select.inp{max-width:220px}
+
+/* facilities & comparison */
+.fac .fi-row{display:grid;grid-template-columns:38px minmax(0,1fr) 130px 130px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.fac .fi-row:last-child{border-bottom:0}
+.fac .fi-row.head{font-size:.75rem;color:var(--mut);font-weight:700;padding:0 0 8px}
+.fac.one .fi-row{grid-template-columns:38px minmax(0,1fr) 150px}
+.fic{width:38px;height:38px;border-radius:10px;background:var(--pri-s);color:var(--pri);display:grid;place-items:center}
+.src{display:inline-flex;gap:4px;align-items:center;font-size:.75rem;font-weight:700;color:var(--mut)}
+.src .ic{width:14px;height:14px}
+.cmp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.cmp.diff{border-color:#f0b4b4;background:#fff7f7}
+.cmp-n{display:flex;align-items:center;gap:10px;font-weight:700}
+.cmp-c small{display:flex;align-items:center;gap:4px;color:var(--mut);font-size:.74rem;font-weight:700}
+.cmp-c small .ic{width:14px;height:14px}
+.cmp-c span{font-weight:700}
+
+/* charts */
+.donut{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.donut svg{width:150px;height:150px;flex:0 0 auto}
+.dn{font-size:20px;font-weight:700;fill:var(--ink)}.dl{font-size:9px;fill:var(--mut)}
+.legend{list-style:none;margin:0;padding:0;flex:1 1 150px}
+.legend li{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.92rem;border-bottom:1px solid var(--line)}
+.legend li:last-child{border-bottom:0}
+.legend b{margin-left:auto}
+.sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+.bars .bar{display:grid;grid-template-columns:minmax(80px,150px) minmax(0,1fr) 44px;gap:10px;align-items:center;padding:7px 0;font-size:.9rem}
+.bt{height:12px;background:var(--line);border-radius:999px;overflow:hidden}
+.bf{display:block;height:100%;border-radius:999px;transition:width .4s}
+.f-info{background:var(--pri)}.f-bad{background:var(--bad)}.f-ok{background:var(--ok)}.f-warn{background:var(--warn)}
+.bars .bar b{text-align:right}
+
+/* lists */
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.feed li:last-child{border-bottom:0}
+.feed .fi{width:30px;height:30px;border-radius:50%;background:var(--muted-s);color:var(--mut);display:grid;place-items:center;flex:0 0 auto}
+.feed .fi .ic{width:16px;height:16px}
+.feed li.deny .fi{background:var(--bad-s);color:var(--bad-d)}.feed li.esc .fi{background:var(--warn-s);color:var(--warn-d)}
+.feed li>div{min-width:0}
+.feed p{margin:0;font-size:.9rem;overflow-wrap:anywhere}
+.feed small{color:var(--mut)}
+.tlist{list-style:none;margin:0;padding:0}
+.trow{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:0}
+.trow>div{flex:1;min-width:0}
+.trow small{display:block;color:var(--mut)}
+.dotc{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.d-ok{background:var(--ok)}.d-bad{background:var(--bad)}.d-warn{background:var(--warn)}.d-info{background:var(--info)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.tbl{width:100%;border-collapse:collapse;font-size:.9rem;min-width:620px}
+.tbl th{background:var(--soft);text-align:left;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);padding:10px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.empty{text-align:center;padding:30px 16px;color:var(--mut)}
+.empty .ei{width:56px;height:56px;border-radius:50%;background:var(--pri-s);color:var(--pri);display:grid;place-items:center;margin:0 auto 10px}
+.empty .ei .ic{width:26px;height:26px}
+.empty b{display:block;color:var(--ink);font-size:1.05rem}
+.empty p{margin:4px auto 0;max-width:46ch}
+.empty .acts{justify-content:center}
+.qa{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.qa button{display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:14px;font-weight:700;color:var(--ink);text-align:left;min-height:92px}
+.qa button:hover{border-color:var(--pri);background:var(--pri-s)}
+.qa .ic{color:var(--pri);width:24px;height:24px}
+.qa small{font-weight:400;color:var(--mut)}
+
+/* toast & modal */
+#toasts{position:fixed;right:16px;bottom:16px;z-index:100;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100vw - 32px))}
+.toast{display:flex;gap:10px;align-items:flex-start;background:#fff;border-radius:12px;box-shadow:var(--sh2);padding:12px 12px 12px 14px;border-left:5px solid var(--ok);animation:tin .2s ease-out}
+.toast>.ic{color:var(--ok-d);margin-top:2px}
+.toast.bad{border-left-color:var(--bad)}.toast.bad>.ic{color:var(--bad-d)}
+.toast.warn{border-left-color:var(--warn)}.toast.warn>.ic{color:var(--warn-d)}
+.toast.info{border-left-color:var(--info)}.toast.info>.ic{color:var(--info-d)}
+.toast>div{flex:1;min-width:0}
+.toast b{display:block}
+.toast p{margin:2px 0 0;font-size:.9rem;color:var(--mut)}
+.toast button{background:none;border:0;color:var(--mut);width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto}
+.toast button:hover{background:var(--muted-s)}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.modal{position:fixed;inset:0;background:rgba(11,37,69,.5);display:grid;place-items:center;z-index:90;padding:16px;animation:fade .15s ease-out}
+.dlg{background:#fff;border-radius:16px;box-shadow:var(--sh2);max-width:460px;width:100%;padding:22px}
+.dlg h3{margin:0 0 8px;display:flex;gap:10px;align-items:center;font-size:1.15rem}
+.dlg h3 .ic{color:var(--pri)}
+.dlg.danger h3 .ic{color:var(--bad-d)}
+.dlg p{color:var(--mut);margin:0}
+.dlg .acts{justify-content:flex-end;margin-top:20px}
+
+/* responsive */
+@media (max-width:900px){
+ .side{transform:translateX(-105%);width:290px;box-shadow:var(--sh2)}
+ body.drawer .side{transform:none}
+ body.drawer .scrim{display:block;position:fixed;inset:0;background:rgba(11,37,69,.5);z-index:35}
+ .mainwrap{margin-left:0}
+ .colbtn{display:none}
+ .closebtn{display:grid}
+ .menu{display:grid}
+ main{padding:16px}
+ .top{padding:10px 16px}
+ .ph h1{font-size:1.35rem}
+}
+@media (max-width:600px){
+ .ctx{margin-left:0;width:100%}
+ .ctx select{flex:1 1 160px}
+ .stats{grid-template-columns:1fr 1fr;gap:10px}
+ .stat{flex-direction:column;padding:12px;gap:8px}
+ .sv{font-size:1.45rem}
+ .card{padding:14px}
+ .ynb{min-width:0;flex:1 1 0}
+ .yn{width:100%}
+ .fac .fi-row{grid-template-columns:32px minmax(0,1fr) 78px 78px;gap:6px}
+ .fac.one .fi-row{grid-template-columns:32px minmax(0,1fr) 110px}
+ .fic{width:32px;height:32px}
+ .cmp{grid-template-columns:1fr 1fr}
+ .cmp-n,.cmp-r{grid-column:1/-1}
+ .tl li{font-size:.68rem}
+ .bars .bar{grid-template-columns:minmax(70px,110px) minmax(0,1fr) 36px}
+ .acts .btn{flex:1 1 auto}
+ #toasts{left:16px;right:16px;width:auto}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<aside class="side" id="side" aria-label="Menu"></aside>
+<div class="scrim" data-ui="closeside"></div>
+<div class="mainwrap">
+<header class="top" id="top"></header>
+<main id="app"></main>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<div id="modal"></div>
+<script>
+/* =====================================================================
+   BUSINESS LOGIC (unchanged from the original prototype)
+   ===================================================================== */
+const SCH={A:{n:"Demo School A",b:1},B:{n:"Demo School B",b:1},C:{n:"Demo School C",b:1},D:{n:"Demo School D",b:2},E:{n:"Demo School E",b:2}};
+const HOME={V1:"B",V2:"D"};
+const SH={HM:"Headmaster",V1:"Verifier 1",V2:"Verifier 2",BO:"Block education officer",BMO:"Block maintenance owner",BSO:"Block supply owner",DO:"District education officer",DSO:"District supply owner",AD:"Platform administrator"};
+const PILL={HM:"Headmaster",V1:"Verifier 1",V2:"Verifier 2",BO:"Block officer",BMO:"Block maintenance",BSO:"Block supply",DO:"District officer",DSO:"District supply",AD:"Admin"};
+const INFO={HM:"You run one school. Fill in the weekly check, report small repairs, and fix problems sent to you.",
+V1:"You visit other schools (never your own). Write down what you see, then check if problems were fixed.",
+V2:"You visit other schools (never your own). Write down what you see, then check if problems were fixed.",
+BO:"You look after all schools in one block. Take charge of problems that schools could not fix.",
+BMO:"You handle repairs in your block that need building work.",
+BSO:"You handle pad supplies in your block when stock is missing.",
+DO:"You help when a problem is still not fixed at block level. You can compare blocks.",
+DSO:"You handle supply problems that reached the district.",
+AD:"You set the time limits and rules. You cannot see the details of any problem."};
+const CHK=[["p","Pads in stock (physical count)"],["a","Pads reachable: unlocked, private, a person available"],["t","Girls’ toilet usable"],["w","Water and soap available"],["d","Disposal usable"]];
+const CN={p:"Pad stock",pd:"Pad stock",a:"Pad accessibility",t:"Girls’ toilet",w:"Water and soap",d:"Disposal"};
+const CH={a:["HM","BO","DO"],tfix:["HM","BMO","DO"],twork:["BMO","DO"],pstock:["BSO","DSO"],disc:["HM","BO","DO"],sup:["BSO","DSO"],spot:["HM","BO","DO"],other:["BO","DO"],rec:["HM","BMO","DO"]};
+const FIX={a:"Place unlocked and private, and a named staff member available to help",tfix:"Usable, separate and private at the next check",twork:"Works completed and usable at the next check",pstock:"Pads delivered and physically counted",disc:"The difference is explained in the ledger, or stock is corrected",sup:"Supply arrives and is counted",spot:"Repair confirmed by a verifier",other:"Issue resolved and confirmed",rec:"A lasting repair confirmed by a verifier"};
+const SRC={report:"the school’s weekly report",visit:"a verifier visit",school:"a failed check raised by the school",other:"an issue not on the small-repair list",rec:"the recurrence rule",spot:"a failed spot check",supply:"a supply report"};
+const PLACES=["Corridor outside the toilets","Classroom block","Outside the toilet area","Water point","Other place"];
+const ST_UN=["Assigned","No owner accepted","Overdue, escalated"];
+const ST_WAIT=["Evidence submitted","Fix recorded","Closed on evidence"];
+const KEY="nivaaran-prototype-v6";
+const YN=["yes","no"];
+const isV=()=>S.role==="V1"||S.role==="V2";
+const nextRev=t=>t.last==="V1"?"V2":"V1";
+const D=s=>S.d[s];
+const open=t=>!t.st.startsWith("Closed");
+const pad=n=>n===1?"pad":"pads";
+let S,RO=false,VO=false;
+
+function base(){const d={};Object.keys(SCH).forEach(s=>d[s]={rep:null,obs:null,ledger:[]});
+ return{day:0,off:false,role:"HM",school:"A",block:1,n:1,closedN:0,d:d,it:[],err:{},dr:{},log:[],ui:{page:"problem",step:0,reveal:false,lane:"",sub:{},flt:"all"},demo:0,
+ cfg:{vis:2,spotN:2,recLimit:2,recDays:30,accDays:1,stale:7,week:7,retain:30,verDays:7,
+  la:{tap:{n:"Leaking tap, water still available",d:5},bulb:{n:"Broken bulb in a corridor outside the toilets",d:3},wall:{n:"Minor wall or floor repair outside toilet and pad areas",d:14},fit:{n:"Loose or worn fitting that does not affect privacy or use",d:7}},
+  b:{a:3,tfix:5,twork:14,pstock:3,disc:3,sup:7,spot:3,other:7,rec:7}}}}
+function fresh(){S=base();seed();S.log=[{d:0,w:"System",t:"Prototype started. Fictional Demo District, two blocks, five schools. Schools B to E hold seeded demo data.",k:"meta",q:false,a:"HM",s:"",l:""}];return S}
+function load(){try{const j=localStorage.getItem(KEY);if(j){S=JSON.parse(j);return S}}catch(e){}return fresh()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function ev(w,t,k,s,l){S.log.unshift({d:S.day,w:w,t:t,k:k||"",q:S.off,a:S.role,s:s||"",l:l||""})}
+function th(t,w,txt,k){t.h.push({d:S.day,w:w,t:txt});ev(w,`${t.id}: ${txt}`,k,t.s,t.lane)}
+function deny(m){ev(SH[S.role],"ACCESS DENIED: "+m,"deny",S.school,"");S.flash="Not allowed: "+m}
+function need(r,m){r=[].concat(r);if(r.includes(S.role))return true;deny(m);return false}
+function setSt(t,st){t.st=st;t.since=S.day}
+function grab(){document.querySelectorAll("#app select[id],#app input[id]:not([type=file])").forEach(e=>{S.dr[e.id]=e.value})}
+function clearDr(){Object.keys(S.dr).forEach(k=>{if(!k.startsWith("photo_"))delete S.dr[k]})}
+function dv(id){return S.dr[id]===undefined?"":S.dr[id]}
+function sel(id,opts,ph){const v=dv(id);return `<select id="${id}" aria-label="${ph||id}"><option value="">${ph||"Choose"}</option>${opts.map(o=>{const a=Array.isArray(o)?o:[o,o];return `<option value="${a[0]}"${a[0]===v?" selected":""}>${a[1]}</option>`}).join("")}</select>`}
+function num(id){return `<input id="${id}" type="number" min="0" placeholder="Number" value="${dv(id)}">`}
+const CQ={p:"How many pads are in the school right now? Count them yourself.",a:"Can a girl reach pads easily? The place is unlocked, private, and a person is available.",t:"Is the girls’ toilet usable? Separate, working, with privacy.",w:"Are water and soap both available?",d:"Is there a usable way to dispose of used pads?"};
+function ynb(id){const v=dv(id);return `<div class="yn" role="group" aria-label="Answer"><button type="button" data-a="yn" data-i="${id}:yes" aria-pressed="${v==="yes"}">Yes</button><button type="button" data-a="yn" data-i="${id}:no" aria-pressed="${v==="no"}">No</button></div>`}
+function chk(pre,verify){return `<div>${CHK.map(([k],n)=>`<div class="chk"><div><b>${n+1}. ${CN[k]}</b><div class="mut">${CQ[k]}</div></div><div class="two">${k==="p"?num(pre+"p"):ynb(pre+k)}${verify&&["t","w","d"].includes(k)?sel("fx_"+k,[["fix","School can fix"],["works","Needs works"]],"If not usable, who can fix it?"):""}</div></div>`).join("")}</div>`}
+function formR(){return chk("r_",false)}
+function formO(){return chk("o_",true)}
+function read(pre){const o={};for(const [k] of CHK){const v=dv(pre+k);if(v==="")return null;if(k==="p"){if(!(+v>=0))return null;o.p=Math.round(+v)}else o[k]=v}return o}
+function led(s){const L=D(s).ledger,o=L.filter(x=>x.type==="out").reduce((a,x)=>a+x.n,0),i=L.filter(x=>x.type==="in").reduce((a,x)=>a+x.n,0);return{out:o,inn:i,exp:D(s).rep?D(s).rep.p+i-o:0}}
+function mkB(s,key,k,type,det,src,x){const c=S.cfg,ch=CH[key];
+ const t=Object.assign({id:"T"+(S.n++),lane:"B",s:s,key:key,k:k,type:type,det:det,fix:FIX[key],chain:ch.slice(),lvl:0,owner:ch[0],day0:S.day,due:S.day+c.b[key],accBy:S.day+c.accDays,st:"Assigned",since:S.day,re:0,h:[],photo:null,staff:"",expl:0,dir:"",diff:0,last:"V1",src:src,ver:src==="visit",dist:false,dept:false,vlate:false},x||{});
+ S.it.push(t);th(t,"System",`created from ${SRC[src]}. Assigned to ${SH[t.owner]}, accept by day ${t.accBy}, due day ${t.due}. Fixed means: ${t.fix}.`);return t}
+function mkA(s,type,place,x){const t=Object.assign({id:"L"+(S.n++),lane:"A",s:s,type:type,place:place,st:"Logged",day0:S.day,due:S.day+S.cfg.la[type].d,photo:null,sample:false,spot:null,cant:0,spotBy:"",h:[]},x||{});S.it.push(t);return t}
+function reopen(t,why){t.lvl=0;t.owner=t.chain[0];t.re++;t.photo=null;t.staff="";t.dist=false;t.dept=false;t.vlate=false;t.accBy=S.day+S.cfg.accDays;t.due=S.day+S.cfg.b[t.key];setSt(t,"Assigned");th(t,"System",`${why}. Reopened (${t.re}). Earlier history stays. Assigned to ${SH[t.owner]}.`,"esc")}
+function raise(s,key,k,type,det,src){
+ if(k){const m=S.it.filter(t=>t.lane==="B"&&t.s===s&&t.k===k),o=m.find(open);if(o)return o;const c=m.filter(t=>!open(t)).pop();if(c){reopen(c,"The problem was found again by "+SRC[src]);return c}}
+ return mkB(s,key,k,type,det,src)}
+function seed(){
+ const M=(s,rep,obs)=>{D(s).rep=rep;if(obs)D(s).obs=obs};
+ M("B",{p:60,a:"yes",t:"no",w:"yes",d:"yes",day:-1});
+ M("D",{p:40,a:"yes",t:"yes",w:"yes",d:"yes",day:-8},{p:40,a:"no",t:"yes",w:"yes",d:"yes",by:"V1",day:-7,fx:{}});
+ M("E",{p:0,a:"yes",t:"yes",w:"yes",d:"yes",day:-2});
+ mkB("B","tfix","t","Accurate report, unresolved facility gap","Girls’ toilet reported unusable. Not yet verified by a visit.","report",{day0:-1,due:4,accBy:1,ver:false});
+ mkB("D","a","a","Accessibility gap","Reported as reachable. At the visit the pads could not be reached.","visit",{day0:-7,due:-4,accBy:-6,st:"No owner accepted",lvl:2,owner:"DO",dist:true,dept:true});
+ mkB("E","pstock","p","Pad stock absent","The school reported zero pads. Not yet verified by a visit.","report",{day0:-2,due:1,accBy:1,ver:false});
+ mkA("B","tap",PLACES[3],{day0:-6,due:-1,st:"Closed (school-level)",closedDay:-2,sample:true});
+ mkA("B","wall",PLACES[1],{day0:-1,due:13});
+ mkA("E","bulb",PLACES[0],{day0:-5,due:-2,st:"Overdue at school level"});
+ mkA("E","fit",PLACES[1],{day0:-1,due:6});
+ S.closedN=1}
+
+function visitClassify(s){
+ const R=D(s).rep,O=D(s).obs,L=led(s),by=SH[O.by];
+ ["a","t","w","d"].forEach(k=>{
+  const op=S.it.find(t=>t.lane==="B"&&t.s===s&&t.k===k&&open(t));
+  if(O[k]==="no"){
+   if(op){if(!op.ver){op.ver=true;th(op,by,"confirmed at the visit.")}
+    if(k!=="a"&&O.fx&&O.fx[k]==="works"&&op.key==="tfix"){op.key="twork";op.chain=CH.twork.slice();op.lvl=0;op.owner="BMO";op.fix=FIX.twork;op.accBy=S.day+S.cfg.accDays;op.due=S.day+S.cfg.b.twork;th(op,by,"says this needs works. Routed to the block maintenance owner.")}}
+   else{const key=k==="a"?"a":(O.fx&&O.fx[k]==="works"?"twork":"tfix");
+    const ty=!R?CN[k]+": found at the visit, no report to compare":k==="a"?(R.a==="yes"?"Accessibility gap":"Accurate report, unresolved facility gap"):(R[k]==="yes"?CN[k]+": facility gap, report did not match":"Accurate report, unresolved facility gap");
+    raise(s,key,k,ty,k==="a"&&R&&R.a==="yes"?"Reported as reachable. At the visit the pads could not be reached.":"Observed not usable or not reachable at the visit.","visit")}
+  }else if(op&&!op.ver&&op.src==="report"){setSt(op,"Closed");th(op,by,"saw it working at the visit. Closed by observation.")}});
+ if(!R){ev(by,"No weekly report to compare with. Shown as Unverified: no report.","",s,"B");return}
+ if(O.p===0){const t=raise(s,"pstock","p","Pad stock absent",`Counted 0 at the visit. Expected ${L.exp}.`,"visit");if(!t.ver){t.ver=true;th(t,by,"confirmed at the visit.")}}
+ else if(O.p!==L.exp){const dir=O.p<L.exp?"short":"over";raise(s,"disc","pd","Stock discrepancy to reconcile",`Reported ${R.p}. The ledger shows ${L.out} given out and ${L.inn} received, so ${L.exp} expected. Counted ${O.p}. Difference ${Math.abs(L.exp-O.p)}. Not treated as dishonesty.`,"visit").dir=dir;const t=S.it.find(x=>x.s===s&&x.k==="pd"&&open(x));if(t)t.diff=Math.abs(L.exp-O.p)}
+ else ev(by,`Stock check: counted ${O.p}, expected ${L.exp}. Matches the ledger. No gap.`,"",s,"B")}
+
+function tick(n){
+ ev("Clock",`Moved forward ${n} day${n>1?"s":""}.`,"meta");
+ const c=S.cfg;
+ for(let i=0;i<n;i++){S.day++;S.it.forEach(t=>{
+  if(t.lane==="A"){
+   if(["Logged","In repair"].includes(t.st)&&S.day>t.due){t.st="Overdue at school level";th(t,"System","deadline passed. Overdue at school level. It does not escalate.")}
+   if(t.photo&&t.closedDay!==undefined&&S.day-t.closedDay>c.retain){t.photo=null;th(t,"System","repair photo removed after the retention period.")}
+   return}
+  if(!open(t)){if(t.photo&&S.day-t.since>c.retain){t.photo=null;th(t,"System","evidence photo removed after the retention period.")}return}
+  const last=t.lvl>=t.chain.length-1,un=ST_UN.includes(t.st);
+  const up=(reason,st)=>{if(!last){t.lvl++;t.owner=t.chain[t.lvl];if(t.owner==="DO"||t.owner==="DSO")t.dist=true;th(t,"System",`${reason}. Escalated to ${SH[t.owner]}. This is a request for help.`,"esc");setSt(t,st);t.accBy=S.day+c.accDays;t.due=S.day+c.b[t.key]}
+   else if(!t.dept){t.dept=true;th(t,"System",`${reason}. Already at the last level. Now on the state overdue list.`,"esc");t.accBy=S.day+c.accDays}};
+  if(un&&S.day>t.accBy)up(`no owner accepted by day ${t.accBy}`,"No owner accepted");
+  else if(!un&&!ST_WAIT.includes(t.st)&&S.day>t.due)up(`overdue after acceptance (due day ${t.due})`,"Overdue, escalated");
+  if(ST_WAIT.includes(t.st)&&S.day-t.since>c.verDays&&!t.vlate){t.vlate=true;th(t,"System",`waiting for a verifier for more than ${c.verDays} days. Shown to the block officer. The school is not escalated for this.`,"esc")}})}}
+
+function laLog(){
+ const s=S.school,f=id=>dv(id);
+ if(!f("lq1")||(f("lq1")!=="yes"&&(!f("lqt")||!f("lqp")||!f("lq3")))){S.err.la="Please answer all the questions first.";return}
+ if(f("lq1")==="yes"){const k=f("lqk");if(!k){S.err.la="Please choose which check fails.";return}
+  const key=k==="a"?"a":k==="p"?"pstock":"tfix";
+  raise(s,key,k==="p"?"p":k,"Failed check raised by the school",`${CN[k]} reported as failing by the school. Not yet verified by a visit.`,"school");
+  S.err.la=`This affects “${CN[k]}”, which is too important to be a small repair. It has been sent as a follow-up task, and a visitor will check it. See “My tasks”.`;clearLa();return}
+ if(f("lqt")==="other"){mkB(s,"other","","Other issue (not on the small-repair list)",f("lqn")||"No note added.","other");
+  S.err.la="This type is not on the small-repair list, so it was sent to the block officer as a follow-up task.";clearLa();return}
+ if(f("lq3")==="yes"){ev("System","Safeguarding path shown to the headmaster. No task was created. Nothing about the concern is stored here.","meta");
+  S.err.la="This may involve a girl’s safety or privacy. Do not use this app for it. Call Child Helpline 1098, the police, or your school’s safety contact. Nothing about it is saved here.";clearLa();return}
+ const type=f("lqt"),place=f("lqp"),c=S.cfg;
+ const prev=S.it.filter(i=>i.lane==="A"&&i.s===s&&i.type===type&&i.place===place&&i.day0>=S.day-c.recDays);
+ if(prev.length>=c.recLimit){const t=mkB(s,"rec","",`Repeat problem: ${c.la[type].n}`,`Same type at the same place (${place}) was logged ${prev.length} times in the last ${c.recDays} days. Earlier small-repair history is attached.`,"rec");
+  prev.forEach(i=>i.h.forEach(x=>t.h.push({d:x.d,w:x.w,t:"Earlier small repair, "+i.id+": "+x.t})));
+  S.err.la="This same problem keeps coming back, so it was sent up as a follow-up task with its past history.";clearLa();return}
+ const i=mkA(s,type,place);i.note=f("lqn");th(i,"Headmaster",`logged: ${c.la[type].n} (${place}). Fix by day ${i.due}.`);
+ S.err.la="Saved as a small repair. It stays in your school. Fix it, then close it with a photo below.";clearLa()}
+function clearLa(){["lq1","lqk","lqt","lqp","lq3","lqn"].forEach(k=>delete S.dr[k])}
+function canUp(t){return t.lvl<t.chain.length-1}
+function toB(i,why){i.st="Sent up as follow-up";const t=mkB(i.s,"spot","","Small repair not really fixed: "+S.cfg.la[i.type].n,why,"spot");i.h.forEach(x=>t.h.push({d:x.d,w:x.w,t:"Earlier small repair, "+i.id+": "+x.t}));th(i,SH[S.role],"sent up as follow-up task "+t.id+".")}
+
+function act(a,i){
+ grab();S.flash="";S.msg="";S.err={};
+ const t=i?S.it.find(x=>x.id===i):null,s=S.school;
+ switch(a){
+ case "role":S.role=i;clearDr();S.err={};break;
+ case "fillr":S.dr.r_p="100";["a","t","w","d"].forEach(k=>S.dr["r_"+k]="yes");break;
+ case "fillo":S.dr.o_p="70";S.dr.o_a="no";["t","w","d"].forEach(k=>S.dr["o_"+k]="yes");break;
+ case "rep":{if(!need("HM","Only the headmaster submits the weekly report."))break;
+  const r=D(s).rep;if(r&&S.day-r.day<S.cfg.week){S.err.r=`The next weekly check is due on day ${r.day+S.cfg.week}.`;break}
+  const v=read("r_");if(!v){S.err.r="Please answer all 5 questions before you submit.";break}
+  S.err.r="";D(s).rep=Object.assign(v,{day:S.day});ev("Headmaster",`Weekly report submitted: ${v.p} pads counted; reachable ${v.a}; toilet ${v.t}; water and soap ${v.w}; disposal ${v.d}.`,"",s,"B");
+  ["a","t","w","d"].forEach(k=>{if(v[k]==="no")raise(s,k==="a"?"a":"tfix",k,"Accurate report, unresolved facility gap",`${CN[k]} reported as failing by the school. Not yet verified by a visit.`,"report")});
+  if(v.p===0)raise(s,"pstock","p","Pad stock absent","The school reported zero pads. Not yet verified by a visit.","report");
+  S.dr={};S.ui.sub.HM="report";break}
+ case "led":{if(!need("HM","Only the headmaster keeps the pad ledger."))break;
+  const n=Math.round(+dv("l_n"));if(!(n>0)){S.err.l="Enter a number of pads above zero.";break}
+  S.err.l="";const ty=dv("l_t")==="in"?"in":"out";D(s).ledger.push({d:S.day,type:ty,n:n});S.dr.l_n="";
+  ev("Headmaster",ty==="out"?`Ledger: ${n} ${pad(n)} given out to students (a count only, no names).`:`Ledger: ${n} ${pad(n)} received from supply.`,"",s,"B");break}
+ case "supgap":{if(!need("HM","Only the headmaster reports a supply gap."))break;
+  if(S.it.some(x=>x.s===s&&x.key==="sup"&&open(x))){S.err.l="A supply gap is already open for this school.";break}
+  mkB(s,"sup","","Supply gap","The school reports that expected pads did not arrive. Not the school’s fault.","supply");S.err.l="";break}
+ case "lalog":if(!need("HM","Only the headmaster logs school-level issues."))break;laLog();break;
+ case "larep":if(!need("HM","Only the headmaster marks repair started."))break;setSt(t,"In repair");th(t,"Headmaster","repair started.");break;
+ case "laclose":{if(!need("HM","Only the headmaster closes a school-level issue."))break;
+  const ph=S.dr["photo_"+t.id];if(!ph){S.err[t.id]="Please add a photo of the repair first.";break}
+  S.err[t.id]="";t.photo=ph;delete S.dr["photo_"+t.id];t.photoDay=S.day;t.photoQ=S.off;setSt(t,"Closed (school-level)");t.closedDay=S.day;S.closedN++;t.sample=S.closedN%S.cfg.spotN===0;
+  th(t,"Headmaster",`repair photo added (device day ${S.day}${S.off?", will sync later":""}). Closed at school level${S.day<=t.due?" on time":" late"}.`);S.msg="Closed. This small repair is done.";break}
+ case "obs":{if(!need(["V1","V2"],"Only a verifier records a visit."))break;
+  if(s===HOME[S.role]){deny("A verifier cannot check their own school.");break}
+  const o=read("o_");if(!o){S.err.o="Please answer all 5 questions first.";break}
+  const fx={};let miss=false;["t","w","d"].forEach(k=>{if(o[k]==="no"){if(!dv("fx_"+k))miss=true;fx[k]=dv("fx_"+k)}});
+  if(miss){S.err.o="For each “No”, choose who can fix it.";break}
+  S.err.o="";D(s).obs=Object.assign(o,{by:S.role,day:S.day,fx:fx});
+  ev(SH[S.role],`Own observation saved first: ${o.p} pads counted; reachable ${o.a}; toilet ${o.t}; water and soap ${o.w}; disposal ${o.d}.`,"",s,"B");
+  ev(SH[S.role],"School’s report and ledger opened for comparison.","",s,"B");visitClassify(s);S.dr={};break}
+ case "peek":if(!need(["V1","V2"],"Only a verifier can use this step."))break;
+  if(s===HOME[S.role])deny("A verifier cannot check their own school.");else if(!D(s).obs||D(s).obs.by!==S.role)deny("Save what you saw first. Then you can see the school’s answers.");break;
+ case "newvisit":if(need(["V1","V2"],"Only a verifier starts a visit.")&&D(s).obs&&S.day>D(s).obs.day)D(s).obs=null;break;
+ case "sc_ok":case "sc_no":case "sc_ct":{if(!need(["V1","V2"],"Only a verifier does spot checks."))break;
+  if(t.s===HOME[S.role]){deny("A verifier cannot check their own school.");break}
+  if(t.spotBy===S.role){deny(`${t.id} was last looked at by ${SH[S.role]}. The other verifier takes the next spot check.`);break}
+  if(a==="sc_ok"){t.st="Spot-check passed";t.spot="ok";th(t,SH[S.role],"spot check: repaired.")}
+  else if(a==="sc_no"){t.spot="no";toB(t,"A verifier saw the fixture at a routine visit and it was not repaired. Needs a verifier re-check to close.")}
+  else{t.cant++;t.spotBy=S.role;if(t.cant>=2){t.spot="no";toB(t,"Two verifiers could not tell whether it was repaired. Needs a verifier re-check.")}else th(t,SH[S.role],"spot check: cannot tell. Goes to the other verifier next.")}break}
+ case "accept":if(!need(t.owner,`Only the ${SH[t.owner].toLowerCase()} can accept ${t.id} right now.`))break;setSt(t,"Accepted");th(t,SH[t.owner],"accepted.");S.msg="Accepted. Now fix the problem and record it in this task.";break;
+ case "up":if(!need(t.owner,`Only the ${SH[t.owner].toLowerCase()} can pass ${t.id} up.`))break;
+  if(!canUp(t))break;t.lvl++;t.owner=t.chain[t.lvl];if(t.owner==="DO"||t.owner==="DSO")t.dist=true;setSt(t,"Assigned");t.accBy=S.day+S.cfg.accDays;t.due=S.day+S.cfg.b[t.key];th(t,SH[S.role],`needs a decision from above. Passed to ${SH[t.owner]}.`,"esc");S.msg=`Sent up to the ${SH[t.owner].toLowerCase()}.`;break;
+ case "rea":{if(!need("BO","Only the block education officer reassigns this."))break;
+  const tg=["t","w","d"].includes(t.k)?"BMO":"BSO";t.chain=[tg,t.chain[t.chain.length-1]];t.lvl=0;t.owner=tg;setSt(t,"Assigned");t.accBy=S.day+S.cfg.accDays;t.due=S.day+S.cfg.b[t.key];th(t,"Block education officer",`reassigned to ${SH[tg]}.`);break}
+ case "fix":if(!need(["a","disc"].includes(t.key)?"HM":t.owner,`Only ${["a","disc"].includes(t.key)?"the school":"the "+SH[t.owner].toLowerCase()} can record this.`))break;
+  setSt(t,"Fix recorded");th(t,SH[S.role],"action recorded without evidence. A verifier checks it at the next routine visit.");S.msg=`Marked as done. Next: view the demo as ${PILL[nextRev(t)]} to check it.`;break;
+ case "fixev":{if(!need("HM","Only the school submits this evidence."))break;
+  const ph=S.dr["photo_"+t.id],sf=dv("st_"+t.id).trim();
+  if(!ph||!sf){S.err[t.id]="Please add both a name and a photo.";break}
+  S.err[t.id]="";t.photo=ph;t.staff=sf;delete S.dr["photo_"+t.id];setSt(t,"Evidence submitted");
+  th(t,"Headmaster",`fix submitted with a photo of the cupboard and designated staff (${sf}). ${SH[nextRev(t)]} reviews it at their desk. No trip needed.`);S.msg=`Sent. Next: view the demo as ${PILL[nextRev(t)]} to check it.`;break}
+ case "expl":{if(!need("HM","Only the school adds ledger explanations."))break;
+  const n=Math.round(+dv("ex_"+t.id));if(!(n>0)){S.err[t.id]="Please enter how many pads.";break}
+  S.err[t.id]="";t.expl=n;D(t.s).ledger.push({d:S.day,type:t.dir==="short"?"out":"in",n:n});
+  th(t,"Headmaster",`added ${n} ${pad(n)} to the ledger as ${t.dir==="short"?"given out":"received"}, not logged earlier.`);
+  if(led(t.s).exp===D(t.s).obs.p){setSt(t,"Evidence submitted");th(t,"System",`The ledger now matches the count. ${SH[nextRev(t)]} reviews the record at their desk.`)}
+  else{setSt(t,"Fix recorded");th(t,"System","The ledger still differs from the count. A recount is needed at the next routine visit.")}break}
+ case "evok":case "evno":case "ok":case "no":case "conf":case "back":{
+  if(!need(["V1","V2"],"Only a verifier can do this check."))break;
+  if(S.role===t.last){deny(`${t.id} was last checked by ${SH[t.last]}. The next check must go to ${SH[nextRev(t)]}.`);break}
+  if(t.s===HOME[S.role]){deny("A verifier cannot check their own school.");break}
+  t.last=S.role;const n=SH[nextRev(t)],w=SH[S.role];
+  if(a==="evok"){setSt(t,"Closed on evidence");th(t,w,`evidence accepted. Closed for now. ${n} confirms it in person at the next routine visit, so no special trip.`);S.msg=`Closed for now. Next: view the demo as ${PILL[nextRev(t)]} to confirm it on a visit.`}
+  else if(a==="ok"||a==="conf"){setSt(t,"Closed");th(t,w,a==="ok"?"routine visit check passed. Closed.":"confirmed in person at a routine visit. Closed.");S.msg="Closed. The problem is fixed."}
+  else if(a==="back"){reopen(t,`${w} found the problem at the routine visit`)}
+  else{setSt(t,"Accepted");t.photo=null;th(t,w,`${a==="evno"?"evidence not enough":"routine visit check: not fixed"}. Sent back to the school or owner. The next submission goes to ${n}.`)}break}
+ case "reopen":if(!need(["V1","V2"],"Only a verifier can record a later check."))break;
+  if(t.s===HOME[S.role]){deny("A verifier cannot check their own school.");break}
+  reopen(t,`${SH[S.role]}: a later check found the problem back`);break;
+ case "rmph":delete S.dr["photo_"+i];break;
+ case "cfgsave":{if(!need("AD","Only the platform administrator under departmental authority changes settings."))break;
+  const g=(id,d)=>{const v=Math.round(+dv(id));return v>=0&&dv(id)!==""?v:d},c=S.cfg;
+  c.vis=dv("c_vis")==="1"?1:2;["spotN","recLimit","recDays","accDays","stale","week","retain","verDays"].forEach(k=>{c[k]=Math.max(1,g("c_"+k,c[k]))});
+  Object.keys(c.la).forEach(k=>c.la[k].d=Math.max(1,g("c_la_"+k,c.la[k].d)));Object.keys(c.b).forEach(k=>c.b[k]=Math.max(1,g("c_b_"+k,c.b[k])));
+  ev("Platform administrator","Department settings changed (placeholders updated).","meta");S.err.c="Settings saved. New values apply to new items and later ticks.";break}
+ case "tab":S.ui.sub[S.role]=i;break;
+ case "flt":S.ui.flt=i;break;
+ case "yn":{const p=i.split(":");S.dr[p[0]]=p[1];break}
+ case "nextrep":{const rp=D(S.school).rep;if(rp){const n=rp.day+S.cfg.week-S.day;if(n>0)tick(n)}break}
+ case "tick1":tick(1);break;
+ case "tick7":tick(7);break;
+ case "off":S.off=!S.off;ev("System",S.off?"Phone offline. New events are saved on the device and marked queued.":"Phone back online.","meta");break;
+ case "sync":{const n=S.log.filter(x=>x.q).length;S.log.forEach(x=>x.q=false);S.it.forEach(x=>{if(x.photoQ){x.photoQ=false;x.syncDay=S.day}});S.off=false;ev("System",`Synced ${n} queued event${n===1?"":"s"}.`,"meta");break}
+ case "reset":{const r=S.role,u=S.ui;fresh();S.role=r;S.ui=u;break}
+ case "open":if(S.role==="AD")deny("The platform administrator cannot see case content, only settings, logs and the overdue list.");break;
+ }
+ render();
+}
+function processPhoto(id,file){
+ const fr=new FileReader();
+ fr.onload=()=>{const im=new Image();im.onload=()=>{const w=Math.min(360,im.width),h=Math.round(im.height*w/im.width),c=document.createElement("canvas");
+  c.width=w;c.height=h;c.getContext("2d").drawImage(im,0,0,w,h);S.dr["photo_"+id]=c.toDataURL("image/jpeg",.6);render()};im.src=fr.result};
+ fr.readAsDataURL(file);
+}
+
+const LOGO="data:image/jpeg;base64,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";
+
+/* =====================================================================
+   INTERFACE LAYER
+   Everything above this line is the original business logic (state,
+   roles, permissions, routing, escalation, verification, offline queue).
+   Everything below only reads that state and calls act().
+   ===================================================================== */
+
+/* ---------- icons (Lucide shapes, inlined so the app works offline) ---------- */
+const IC={
+layout:'<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+clipboard:'<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+listc:'<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+book:'<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+eye:'<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+school:'<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>',
+chart:'<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+sliders:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+activity:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+ok:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/>',
+xc:'<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+menu:'<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+chev2:'<path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>',
+chev:'<path d="m9 18 6-6-6-6"/>',
+x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+calendar:'<rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
+wifi:'<path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 20 0"/><line x1="12" x2="12.01" y1="20" y2="20"/>',
+wifioff:'<line x1="2" x2="22" y1="2" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><line x1="12" x2="12.01" y1="20" y2="20"/>',
+refresh:'<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+reset:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+ff:'<path d="m13 19 9-7-9-7z"/><path d="m2 19 9-7-9-7z"/>',
+camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+up:'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+right:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+droplet:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+door:'<path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>',
+truck:'<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+minus:'<path d="M5 12h14"/>',
+inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+loader:'<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+pkg:'<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+calc:'<rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>'};
+function ic(n,c){return `<svg class="ic${c?" "+c:""}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]||""}</svg>`}
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- shared helpers (same rules as before) ---------- */
+const ROLEK=["HM","V1","V2","BO","BMO","BSO","DO","DSO","AD"];
+const isVr=r=>r==="V1"||r==="V2";
+const canPhoto=()=>["HM","V1","V2","BO","BMO"].includes(S.role)||RO;
+const FIXN={a:"pads locked away",tfix:"facility the school can fix",twork:"facility needing building work",pstock:"no pads",disc:"pad count mismatch",sup:"supply did not arrive",spot:"small repair not really fixed",other:"other problem",rec:"repeating problem"};
+const CIC={p:"pkg",a:"lock",t:"door",w:"droplet",d:"trash"};
+const LVL=r=>["HM","V1","V2"].includes(r)?"School":["BO","BMO","BSO"].includes(r)?"Block":["DO","DSO"].includes(r)?"District":"State";
+function waitText(t){const o=SH[t.owner].toLowerCase();return {"Assigned":`Waiting for the ${o} to accept.`,"No owner accepted":`Waiting for the ${o} to accept.`,"Overdue, escalated":`Waiting for the ${o} to accept.`,"Accepted":["a","disc"].includes(t.key)?"Waiting for the school to submit evidence or a fix.":`Waiting for the ${o} to act.`,"Evidence submitted":`Waiting for ${SH[nextRev(t)]} to review the evidence at their desk. No trip needed.`,"Fix recorded":`Waiting for ${SH[nextRev(t)]} at the next routine visit.`,"Closed on evidence":`Closed for now. ${SH[nextRev(t)]} confirms it in person at the next routine visit.`,"Closed":"Case closed."}[t.st]}
+function scopeB(r){
+ const T=S.it.filter(t=>t.lane==="B"),sup=t=>["pstock","sup"].includes(t.key);
+ if(r==="HM")return T.filter(t=>t.s===S.school);
+ if(r==="BO")return T.filter(t=>SCH[t.s].b===S.block);
+ if(r==="BMO")return T.filter(t=>SCH[t.s].b===S.block&&(["tfix","twork","rec"].includes(t.key)||t.owner==="BMO"));
+ if(r==="BSO")return T.filter(t=>SCH[t.s].b===S.block&&(sup(t)||t.owner==="BSO"));
+ if(r==="DO")return T.filter(t=>t.dist&&!sup(t));
+ if(r==="DSO")return T.filter(t=>t.dist&&sup(t));
+ return []}
+function mineT(r){
+ if(isVr(r))return S.it.filter(t=>t.lane==="B"&&ST_WAIT.includes(t.st)&&nextRev(t)===r&&t.s!==HOME[r]);
+ const T=scopeB(r).filter(open);
+ if(r==="HM")return T.filter(t=>(ST_UN.includes(t.st)&&t.owner==="HM")||(t.st==="Accepted"&&(t.owner==="HM"||["a","disc"].includes(t.key))));
+ return T.filter(t=>t.owner===r)}
+function spotList(r){return S.it.filter(i=>i.lane==="A"&&i.sample&&!i.spot&&i.st==="Closed (school-level)"&&i.spotBy!==r&&i.s!==HOME[r])}
+function stat(s){
+ const d=D(s),B=S.it.filter(t=>t.lane==="B"&&t.s===s),O=B.filter(open),A=S.it.filter(i=>i.lane==="A"&&i.s===s);
+ const rep=d.rep?(S.day-d.rep.day>S.cfg.stale?"Unverified: report is stale":d.obs&&d.obs.day>=d.rep.day?"Reported and verified":"Reported, awaiting a visit"):"Unverified: no report";
+ const lo=["Logged","In repair","Overdue at school level"];
+ return{rep:rep,open:O.length,noown:O.filter(t=>t.st==="No owner accepted"||t.st==="Overdue, escalated").length,over:O.filter(t=>S.day>t.due&&!ST_WAIT.includes(t.st)).length,re:B.filter(t=>t.re>0).length,closed:B.length-O.length,
+  la:{n:A.length,ont:A.filter(i=>i.closedDay!==undefined&&i.closedDay<=i.due).length,ov:A.filter(i=>lo.includes(i.st)&&S.day>i.due).length,sp:A.filter(i=>i.spot).length,pend:A.filter(i=>i.sample&&!i.spot&&i.st==="Closed (school-level)").length}}}
+function laCell(x){return S.cfg.vis===1?"Not shared":`${x.n} logged, ${x.ont} on time, ${x.ov} overdue, ${x.sp} spot-checked, ${x.pend} spot checks pending`}
+function visible(x){
+ const r=S.role;
+ if(x.k==="meta")return true;
+ if(x.k==="deny")return r==="AD"||x.a===r;
+ if(r==="AD")return false;
+ if(r==="HM")return x.s===S.school&&x.l!=="";
+ if(isVr(r))return x.s===S.school&&x.l==="B";
+ if(["BO","BMO","BSO"].includes(r))return x.l==="B"&&x.s&&SCH[x.s].b===S.block;
+ return x.l==="B"}
+const schoolsOf=b=>Object.keys(SCH).filter(s=>SCH[s].b===b);
+function latest(s){const R=D(s).rep,O=D(s).obs;return O&&(!R||O.day>=R.day)?O:R}
+const toiletOK=ss=>ss.filter(s=>{const x=latest(s);return x&&x.t==="yes"}).length;
+const laOpen=i=>["Logged","In repair","Overdue at school level"].includes(i.st);
+
+/* ---------- status language & colours ---------- */
+const STL={"Closed on evidence":"Closed, to confirm","Closed (school-level)":"Closed by school","Overdue at school level":"Overdue","Overdue, escalated":"Overdue, sent up","No owner accepted":"No one accepted","Assigned":"Waiting to accept","Fix recorded":"Done, to check","Evidence submitted":"Photo sent, to check","Spot-check passed":"Checked: fixed","Logged":"Open","Sent up as follow-up":"Sent up","In repair":"Repair started"};
+function tone(st){
+ if(["Closed","Closed on evidence","Spot-check passed","Closed (school-level)"].includes(st))return"ok";
+ if(["No owner accepted","Overdue, escalated","Overdue at school level"].includes(st))return"bad";
+ if(["Assigned","Logged"].includes(st))return"warn";
+ if(st==="Sent up as follow-up")return"muted";
+ return"info"}
+const stBadge=st=>`<span class="badge b-${tone(st)}">${STL[st]||st}</span>`;
+function bk(t){if(!open(t))return"ok";if(t.st==="No owner accepted"||t.st==="Overdue, escalated"||(S.day>t.due&&!ST_WAIT.includes(t.st)))return"bad";if(t.st==="Assigned")return"warn";return"info"}
+function buckets(T){const b={ok:0,info:0,warn:0,bad:0};T.forEach(t=>b[bk(t)]++);return b}
+function dueTxt(d){const n=d-S.day;return n<0?`${-n} day${n===-1?"":"s"} late`:n===0?"due today":`${n} day${n===1?"":"s"} left`}
+
+/* ---------- small building blocks ---------- */
+function ph(t,sub,right){return `<div class="ph"><div><h1>${t}</h1>${sub?`<p>${sub}</p>`:""}</div>${right||""}</div>`}
+function empty(i,t,p,btn){return `<div class="empty"><div class="ei">${ic(i)}</div><b>${t}</b>${p?`<p>${p}</p>`:""}${btn?`<div class="acts">${btn}</div>`:""}</div>`}
+const ferr=m=>`<p class="ferr" role="alert">${ic("alert","sm")}<span>${m}</span></p>`;
+const go=(page,label,cls,icon,school)=>`<button class="btn ${cls||"pri"}" data-ui="go" data-page="${page}"${school?` data-school="${school}"`:""}>${icon?ic(icon):""}${label}</button>`;
+function statCard(i,label,val,tn,hint,page){const inner=`<span class="si">${ic(i)}</span><span class="sb"><span class="sv">${val}</span><span class="sl">${label}</span>${hint?`<small>${hint}</small>`:""}</span>`;
+ return page?`<button class="stat s-${tn}" data-ui="go" data-page="${page}">${inner}</button>`:`<div class="stat s-${tn}">${inner}</div>`}
+function ynb2(id){const v=dv(id);return `<div class="yn" role="group" aria-label="Answer"><button type="button" class="ynb y" data-a="yn" data-i="${id}:yes" aria-pressed="${v==="yes"}">${ic("check")}Yes</button><button type="button" class="ynb n" data-a="yn" data-i="${id}:no" aria-pressed="${v==="no"}">${ic("x")}No</button></div>`}
+function choice(id,opts){const v=dv(id);return `<div class="opts" role="group">${opts.map(([k,l])=>`<button type="button" class="opt" data-a="yn" data-i="${id}:${k}" aria-pressed="${v===k}">${v===k?ic("check","sm"):""}${l}</button>`).join("")}</div>`}
+function photoField(id,label){const p=S.dr["photo_"+id];
+ return `<div class="field"><span class="lbl">${label}</span>${p?`<div class="pv"><img src="${p}" alt="Preview of your photo"><button class="btn ghost sm" data-a="rmph" data-i="${id}">${ic("x","sm")}Remove photo</button></div>`
+ :S.ui.loading===id?`<div class="upload loading">${ic("loader","spin")}<span><b>Preparing photo…</b><small>Making it smaller so it sends quickly.</small></span></div>`
+ :`<input class="sr" id="ph_${id}" type="file" accept="image/*" capture="environment"><label class="upload" for="ph_${id}">${ic("camera")}<span><b>Take or choose a photo</b><small>Fixture only. Never photograph people.</small></span></label>`}</div>`}
+function actList(n){const lg=S.log.filter(visible).slice(0,n);
+ return lg.length?`<ul class="feed">${lg.map(x=>`<li class="${x.k}"><span class="fi">${ic(x.k==="deny"?"lock":x.k==="esc"?"up":x.k==="meta"?"info":"activity")}</span><div><p><b>${x.w}</b>: ${esc(x.t)}</p><small>Day ${x.d}${x.q?" · not sent yet (offline)":""}</small></div></li>`).join("")}</ul>`:empty("activity","Nothing yet","Actions will show here.")}
+const moreLog=()=>`<button class="link" data-ui="go" data-page="log">View all activity ${ic("right","sm")}</button>`;
+function trow(t){return `<li class="trow"><span class="dotc d-${bk(t)}"></span><div><b>${SCH[t.s].n}</b> · ${esc(t.type)}<small>${SH[t.owner]} · ${ST_UN.includes(t.st)?`accept by day ${t.accBy} (${dueTxt(t.accBy)})`:t.st==="Accepted"?`fix by day ${t.due} (${dueTxt(t.due)})`:STL[t.st]||t.st}</small></div>${stBadge(t.st)}</li>`}
+
+/* ---------- charts (plain SVG/CSS, no library) ---------- */
+function donut(b,title){const tot=b.ok+b.info+b.warn+b.bad,L=[["ok","Resolved"],["info","In progress"],["warn","Pending"],["bad","Overdue"]],C=2*Math.PI*40;let off=0;
+ const segs=L.map(([k])=>{if(!b[k])return"";const len=b[k]/tot*C,s=`<circle r="40" cx="50" cy="50" fill="none" stroke="var(--${k})" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 50 50)"/>`;off+=len;return s}).join("");
+ return `<div class="card"><h3 class="ch">${ic("chart")}${title}</h3>${tot?`<div class="donut"><svg viewBox="0 0 100 100" role="img" aria-label="${L.map(([k,l])=>`${l} ${b[k]}`).join(", ")}"><circle r="40" cx="50" cy="50" fill="none" stroke="var(--line)" stroke-width="14"/>${segs}<text x="50" y="50" text-anchor="middle" class="dn">${tot}</text><text x="50" y="63" text-anchor="middle" class="dl">tasks</text></svg><ul class="legend">${L.map(([k,l])=>`<li><span class="sw" style="background:var(--${k})"></span>${l}<b>${b[k]}</b></li>`).join("")}</ul></div>`:empty("inbox","No tasks yet","")}</div>`}
+function bars(title,rows,note){const m=Math.max(1,...rows.map(r=>r[1]));
+ return `<div class="card"><h3 class="ch">${ic("chart")}${title}</h3><div class="bars">${rows.map(([l,v,tn])=>`<div class="bar"><span>${l}</span><span class="bt" role="img" aria-label="${l}: ${v}"><span class="bf f-${tn||"info"}" style="width:${v/m*100}%"></span></span><b>${v}</b></div>`).join("")}</div>${note?`<p class="mut sm">${note}</p>`:""}</div>`}
+
+/* ---------- task cards ---------- */
+function timeline(t){const st=t.st,cur=ST_UN.includes(st)?1:st==="Accepted"?2:["Evidence submitted","Fix recorded"].includes(st)?3:st==="Closed on evidence"?4:5;
+ return `<ol class="tl" aria-label="Progress">${["Reported","Accepted","Fixed","Checked","Closed"].map((s,i)=>`<li class="${i<cur?"done":i===cur?"now":""}${i===cur&&tone(st)==="bad"?" late":""}"><span class="dot"></span><span>${s}</span></li>`).join("")}</ol>`}
+function ladder(t){return t.chain.length<2?"":`<div class="ladder">${ic("up")}<span>Moves up if nobody acts:</span>${t.chain.map((r,i)=>`<span class="lstep${i===t.lvl?" cur":""}">${PILL[r]}</span>`).join(ic("chev","sm"))}</div>`}
+function evBlock(t){let h="";
+ if(t.photo&&canPhoto())h+=`<div class="evid"><div><b>${ic("camera")}Evidence from the school</b><p class="mut">${t.staff?`Person who can give out pads: ${esc(t.staff)}`:"Photo of the fixture"}</p></div><img src="${t.photo}" alt="Photo submitted by the school"></div>`;
+ if(t.key==="disc"&&t.expl)h+=`<div class="evid"><div><b>${ic("book")}Pad record explanation</b><p class="mut">${t.expl} ${pad(t.expl)} added as ${t.dir==="short"?"given out":"received"}.</p></div></div>`;
+ return h}
+function actions(t){
+ if(RO||VO)return `<p class="wait">${ic("clock")}${waitText(t)}</p>`;
+ const r=S.role,st=t.st,e=S.err[t.id]?ferr(S.err[t.id]):"",un=ST_UN.includes(st);
+ const B=(a,l,c,i)=>`<button class="btn ${c||"pri"}" data-a="${a}" data-i="${t.id}">${i?ic(i):""}${l}</button>`;
+ if(un&&t.owner===r){let b=B("accept","Accept task","pri","check");if(canUp(t))b+=B("up","Send up for help","sec","up");
+  if(r==="BO"&&["t","w","d","p"].includes(t.k)&&["tfix","twork","pstock"].includes(t.key))b+=B("rea","Reassign to "+(t.k==="p"?"block supply owner":"block maintenance owner"),"sec","users");
+  return `<div class="acts">${b}</div>`}
+ if(st==="Accepted"){
+  if(t.key==="a"&&r==="HM")return `<div class="fixbox"><h4>Show that it is fixed</h4><div class="field"><label class="lbl" for="st_${t.id}">1. Who can give out pads now?</label><input id="st_${t.id}" type="text" placeholder="A staff role, e.g. class teacher" value="${esc(dv("st_"+t.id))}"></div>${photoField(t.id,"2. Photo of the open cupboard or shelf")}${e}<div class="acts">${B("fixev","Send photo and name","pri","send")}${B("fix","Mark done without photo","sec")}</div></div>`;
+  if(t.key==="disc"&&r==="HM")return `<div class="fixbox"><h4>Explain the difference</h4><div class="field"><label class="lbl" for="ex_${t.id}">${t.dir==="short"?"How many pads were given out but not written down?":"How many pads were received but not written down?"}</label><input id="ex_${t.id}" type="number" min="1" inputmode="numeric" placeholder="Number of pads" value="${esc(dv("ex_"+t.id))}"></div>${e}<div class="acts">${B("expl","Add to pad record","pri","book")}${B("fix","Mark done without explaining","sec")}</div></div>`;
+  if(!["a","disc"].includes(t.key)&&t.owner===r)return `<div class="acts">${B("fix",["pstock","sup"].includes(t.key)?"Record delivery":"Mark as done","pri",["pstock","sup"].includes(t.key)?"truck":"check")}${canUp(t)?B("up","Send up for help","sec","up"):""}</div>`}
+ if(isV()&&t.s!==HOME[r]){
+  if(st==="Evidence submitted")return `<div class="acts">${B("evok","Photo is fine: close","pri","check")}${B("evno","Not enough: send back","danger","x")}</div>`;
+  if(st==="Fix recorded")return `<div class="acts">${B("ok","I visited: it is fixed","pri","check")}${B("no","I visited: not fixed","danger","x")}</div>`;
+  if(st==="Closed on evidence")return `<div class="acts">${B("conf","I visited: confirmed","pri","shield")}${B("back","I visited: problem is back","danger","alert")}</div>`;
+  if(st==="Closed")return `<div class="acts">${B("reopen","Problem came back","danger","alert")}</div>`}
+ return `<p class="wait">${ic("clock")}${waitText(t)}</p>`}
+function taskHtml(t,showS){
+ const un=ST_UN.includes(t.st);let dl="",late=false;
+ if(un){dl=`Accept by day ${t.accBy} · ${dueTxt(t.accBy)}`;late=S.day>t.accBy}
+ else if(t.st==="Accepted"){dl=`Fix by day ${t.due} · ${dueTxt(t.due)}`;late=S.day>t.due}
+ else if(["Evidence submitted","Fix recorded"].includes(t.st))dl="Waiting for a verifier check";
+ return `<article class="card task t-${tone(t.st)}"><div class="task-h"><div><div class="eyebrow">${ic("flag")}Follow-up task · ${t.id}${showS?` · ${SCH[t.s].n}`:""}</div><h3>${esc(t.type)}</h3></div>
+<div class="badges">${stBadge(t.st)}${t.ver?`<span class="badge b-info">${ic("shield")}Verified by visit</span>`:`<span class="badge b-muted">${ic("clipboard")}School-reported, not checked yet</span>`}${t.re?`<span class="badge b-warn">Came back ${t.re}×</span>`:""}${t.vlate?`<span class="badge b-bad">Check is late</span>`:""}${t.dept?`<span class="badge b-bad">Long overdue</span>`:""}</div></div>
+<p class="det">${esc(t.det)}</p>
+<dl class="meta"><div><dt>${ic("user")}Who must act</dt><dd><b>${SH[t.owner]}</b><br><span class="mut sm">${LVL(t.owner)} level</span></dd></div>${dl?`<div><dt>${ic("clock")}Deadline</dt><dd class="${late?"txt-bad":""}">${dl}</dd></div>`:""}<div><dt>${ic("ok")}Counts as fixed when</dt><dd>${t.fix}</dd></div></dl>
+${timeline(t)}${ladder(t)}${evBlock(t)}${actions(t)}
+<details class="hist"><summary>Full history (${t.h.length})</summary><ol>${t.h.map(x=>`<li><b>Day ${x.d}</b> · ${x.w}: ${esc(x.t)}</li>`).join("")}</ol></details></article>`}
+function laHtml(i){
+ const e=S.err[i.id]?ferr(S.err[i.id]):"",op=laOpen(i),started=i.st==="In repair"||i.h.some(x=>/repair started/.test(x.t));
+ const steps=i.sample||i.spot?["Logged","Repair started","Closed with photo","Spot-checked"]:["Logged","Repair started","Closed with photo"];
+ const cur=i.st==="Spot-check passed"?4:["Closed (school-level)","Sent up as follow-up"].includes(i.st)?3:started?2:1;
+ const tl=`<ol class="tl" aria-label="Progress">${steps.map((s,k)=>`<li class="${k<cur?"done":k===cur?"now":""}${k===cur&&i.st==="Overdue at school level"?" late":""}"><span class="dot"></span><span>${s}</span></li>`).join("")}</ol>`;
+ const dl=op?`Fix by day ${i.due} · ${dueTxt(i.due)}`:i.closedDay!==undefined?`Closed on day ${i.closedDay}${i.closedDay<=i.due?" (on time)":" (late)"}`:"";
+ let b="";
+ if(op&&!RO)b=`<div class="fixbox"><h4>${i.st==="Logged"?"Next steps":"Close this repair"}</h4>${i.st==="Logged"?`<div class="acts" style="margin:0 0 4px"><button class="btn sec" data-a="larep" data-i="${i.id}">${ic("wrench")}Mark repair started</button></div>`:""}${photoField(i.id,"When it is fixed, add a photo of the repair")}${e}<div class="acts"><button class="btn pri" data-a="laclose" data-i="${i.id}">${ic("check")}Close with photo</button></div></div>`;
+ return `<article class="card task t-${tone(i.st)}"><div class="task-h"><div><div class="eyebrow">${ic("wrench")}Small repair · ${i.id}</div><h3>${S.cfg.la[i.type].n}</h3></div><div class="badges">${stBadge(i.st)}</div></div>
+<dl class="meta"><div><dt>${ic("pin")}Where</dt><dd>${i.place}</dd></div>${dl?`<div><dt>${ic("clock")}Deadline</dt><dd class="${i.st==="Overdue at school level"?"txt-bad":""}">${dl}</dd></div>`:""}<div><dt>${ic("user")}Who fixes it</dt><dd>Headmaster. It stays in the school and is never sent up.</dd></div></dl>
+${tl}${i.photo&&canPhoto()?`<div class="evid"><div><b>${ic("camera")}Repair photo</b><p class="mut">Taken on device day ${i.photoDay}${i.syncDay!==undefined?`, reached the server on day ${i.syncDay}`:i.photoQ?", not sent yet (offline)":""}.</p></div><img src="${i.photo}" alt="Repair photo"></div>`:""}${b}
+<details class="hist"><summary>Full history (${i.h.length})</summary><ol>${i.h.map(x=>`<li><b>Day ${x.d}</b> · ${x.w}: ${esc(x.t)}</li>`).join("")}</ol></details></article>`}
+
+/* ---------- questions (weekly check & visit) ---------- */
+function qform(pre,verify){const n=CHK.filter(([k])=>dv(pre+k)!=="").length;
+ return `<div class="qform" data-pre="${pre}"><div class="prog"><div class="prog-t" id="progtxt">${n} of 5 answered</div><div class="prog-b"><span id="progbar" style="width:${n*20}%"></span></div></div>
+${CHK.map(([k],x)=>`<div class="q${dv(pre+k)!==""?" answered":""}"><div class="qh"><span class="qn">${x+1}</span><div><b>${CN[k]}</b><p>${CQ[k]}</p></div></div><div>${k==="p"?`<label class="sr" for="${pre}p">Number of pads</label><input id="${pre}p" class="big-num" type="number" min="0" inputmode="numeric" placeholder="Number of pads" value="${esc(dv(pre+"p"))}">`:ynb2(pre+k)}</div>${verify&&["t","w","d"].includes(k)&&dv(pre+k)==="no"?`<div class="sub-q"><span class="lbl">Who can fix it?</span>${choice("fx_"+k,[["fix","The school can fix it"],["works","Needs building work"]])}</div>`:""}</div>`).join("")}</div>`}
+function updProg(){const f=document.querySelector(".qform");if(!f)return;const pre=f.dataset.pre;let n=0;
+ CHK.forEach(([k])=>{if(k==="p"){const e=document.getElementById(pre+"p");if(e&&e.value!=="")n++}else if(dv(pre+k)!=="")n++});
+ const t=document.getElementById("progtxt"),b=document.getElementById("progbar");if(t)t.textContent=`${n} of 5 answered`;if(b)b.style.width=n*20+"%"}
+const yesNo=v=>v==="yes"?`<span class="pill p-ok">${ic("check")}Yes</span>`:v==="no"?`<span class="pill p-bad">${ic("x")}No</span>`:`<span class="mut">No data</span>`;
+function facVal(o,k){return !o?`<span class="mut sm">No data</span>`:k==="p"?`<b>${o.p}</b> <span class="mut sm">pads</span>`:yesNo(o[k])}
+function facilityCard(s){const R=D(s).rep,O=D(s).obs;
+ return `<div class="card"><div class="ch-row"><h3 class="ch">${ic("school")}Facilities at ${SCH[s].n}</h3></div><div class="fac"><div class="fi-row head"><span></span><span>Check</span><span class="src">${ic("clipboard")}School says</span><span class="src">${ic("shield")}Verified</span></div>
+${CHK.map(([k])=>`<div class="fi-row"><span class="fic">${ic(CIC[k])}</span><span>${CN[k]}</span><span>${facVal(R,k)}</span><span>${facVal(O,k)}</span></div>`).join("")}</div>
+<p class="mut sm">${R?`School report from day ${R.day}${S.day-R.day>S.cfg.stale?" (old, needs a new check)":""}.`:"No weekly check yet."} ${O?`Last independent visit on day ${O.day}.`:"No independent visit yet."}</p></div>`}
+
+/* ---------- navigation ---------- */
+function tabsOf(r){const m=mineT(r).length;
+ if(r==="HM"){const la=S.it.filter(i=>i.lane==="A"&&i.s===S.school&&laOpen(i)).length,rp=D(S.school).rep,due=!rp||S.day-rp.day>=S.cfg.week;
+  return [["dash","Dashboard"],["report","Weekly check",due?"Due":0],["mine","My tasks",m],["lanea","Report a problem",la],["ledger","Pad record"],["all","All school tasks",scopeB(r).length],["log","Activity"]]}
+ if(isVr(r))return [["dash","Dashboard"],["visit","School visit"],["mine","To verify",m],["spot","Check small repairs",spotList(r).length],["log","Activity"]];
+ if(r==="BO")return [["dash","Dashboard"],["mine","My tasks",m],["all","All block tasks",scopeB(r).length],["schools","Schools"],["log","Activity"]];
+ if(r==="DO")return [["dash","Dashboard"],["mine","My tasks",m],["all","All district tasks",scopeB(r).length],["blocks","Compare blocks"],["log","Activity"]];
+ if(r==="AD")return [["dash","Overview"],["settings","Rules & time limits"],["overdue","Long-overdue list"],["log","Audit log"]];
+ return [["dash","Dashboard"],["mine","My tasks",m],["all","All tasks",scopeB(r).length],["log","Activity"]]}
+function curSub(r){const c=S.ui.sub[r];return c&&tabsOf(r).some(x=>x[0]===c)?c:"dash"}
+const NIC={dash:"layout",report:"clipboard",mine:"listc",lanea:"wrench",ledger:"book",all:"layers",visit:"pin",spot:"eye",schools:"school",blocks:"chart",settings:"sliders",overdue:"alert",log:"activity"};
+function sideHtml(r,sub){const nq=S.log.filter(x=>x.q).length;
+ return `<div class="brand"><img src="${LOGO}" alt="Nivaaran logo"><div class="hide-col"><b>Nivaaran</b><small>School sanitation, fixed and checked</small></div><button class="colbtn" data-ui="collapse" aria-label="${S.ui.col?"Expand":"Collapse"} menu" title="${S.ui.col?"Expand":"Collapse"} menu">${ic("chev2")}</button><button class="closebtn" data-ui="closeside" aria-label="Close menu">${ic("x")}</button></div>
+<div class="who hide-col"><label for="rolesel">Demo · view as</label><select id="rolesel">${ROLEK.map(k=>`<option value="${k}"${k===r?" selected":""}>${SH[k]}</option>`).join("")}</select><p>${INFO[r]}</p></div>
+<nav aria-label="Main menu"><ul class="nav">${tabsOf(r).map(([id,l,n])=>`<li><button data-a="tab" data-i="${id}"${id===sub?' aria-current="page"':""} title="${l}">${ic(NIC[id])}<span class="lbl-t">${l}</span>${n==="Due"?'<span class="cnt due">Due</span>':n?`<span class="cnt">${n}</span>`:""}</button></li>`).join("")}</ul></nav>
+<div class="demo hide-col"><h4>Demo controls</h4><div class="dday">${ic("calendar","sm")}Today is <b>day ${S.day}</b></div>
+<div class="row"><button class="dbtn" data-a="tick1">${ic("ff","sm")}+1 day</button><button class="dbtn" data-a="tick7">${ic("ff","sm")}+7 days</button></div>
+<div class="row"><button class="dbtn" data-a="off">${ic(S.off?"wifi":"wifioff","sm")}${S.off?"Go online":"Go offline"}</button><button class="dbtn" data-a="sync"${nq?"":" disabled"}>${ic("refresh","sm")}Send (${nq})</button></div>
+<div class="row"><button class="dbtn danger" data-a="reset">${ic("reset","sm")}Start over</button></div></div>`}
+function topHtml(r,sub){const t=tabsOf(r).find(x=>x[0]===sub),nq=S.log.filter(x=>x.q).length;
+ const ctx=["HM","V1","V2"].includes(r)?`<label class="sr" for="ctxs">${r==="HM"?"Your school":"School"}</label><select id="ctxs">${Object.keys(SCH).map(k=>`<option value="${k}"${k===S.school?" selected":""}>${SCH[k].n}${isVr(r)&&k===HOME[r]?" (your own)":""}</option>`).join("")}</select>`
+  :["BO","BMO","BSO"].includes(r)?`<label class="sr" for="ctxb">Block</label><select id="ctxb"><option value="1"${S.block===1?" selected":""}>Demo Block 1</option><option value="2"${S.block===2?" selected":""}>Demo Block 2</option></select>`
+  :`<span class="chip">${ic("school","sm")}${r==="AD"?"Whole state":"Demo District"}</span>`;
+ return `<button class="menu" data-ui="openside" aria-label="Open menu">${ic("menu")}</button><div class="tt"><h2>${t?t[1]:"Dashboard"}</h2><span class="crumb">${SH[r]}</span></div>
+<div class="ctx">${ctx}<span class="chip">${ic("calendar","sm")}Day ${S.day}</span><span class="chip ${S.off?"off":"on"}">${ic(S.off?"wifioff":"wifi","sm")}${S.off?`Offline · ${nq} waiting`:"Online"}</span></div>`}
+
+/* ---------- dashboards ---------- */
+function dash(r){return r==="HM"?dashHM():isVr(r)?dashV(r):r==="AD"?dashAD():r==="BO"?dashBO():r==="DO"?dashDO():dashOwner(r)}
+function dashHM(){const s=S.school,rp=D(s).rep,due=!rp||S.day-rp.day>=S.cfg.week,T=scopeB("HM"),m=mineT("HM"),la=S.it.filter(i=>i.lane==="A"&&i.s===s),laO=la.filter(laOpen);
+ const over=T.filter(t=>bk(t)==="bad").length+laO.filter(i=>i.st==="Overdue at school level").length,res=T.filter(t=>!open(t)).length+la.filter(i=>!laOpen(i)).length;
+ let h=ph(`${SCH[s].n}`,INFO.HM);
+ h+=due?`<div class="cta warn">${ic("clipboard")}<div><b>Your weekly check is due</b><p>5 quick questions. About 2 minutes.</p></div>${go("report","Start weekly check","pri lg","right")}</div>`
+  :`<div class="cta ok">${ic("ok")}<div><b>Weekly check done</b><p>Sent on day ${rp.day}. The next one is due on day ${rp.day+S.cfg.week}.</p></div></div>`;
+ if(m.length)h+=`<div class="cta info">${ic("listc")}<div><b>${m.length} task${m.length>1?"s":""} need${m.length>1?"":"s"} your action</b><p>Problems found at your school. Accept them and fix them.</p></div>${go("mine","Open my tasks","pri","right")}</div>`;
+ h+=`<div class="stats">${statCard("listc","My tasks",m.length,m.length?"warn":"ok","Need your action","mine")}${statCard("wrench","Small repairs open",laO.length,laO.length?"info":"ok","Fixed by the school","lanea")}${statCard("alert","Overdue",over,over?"bad":"ok","Past the deadline","all")}${statCard("ok","Resolved",res,"ok","Closed problems","all")}</div>`;
+ h+=facilityCard(s);
+ h+=`<div class="g2"><div class="card"><h3 class="ch">${ic("layout")}Quick actions</h3><div class="qa">
+<button data-ui="go" data-page="report">${ic("clipboard")}Weekly check<small>Answer 5 questions</small></button>
+<button data-ui="go" data-page="lanea">${ic("wrench")}Report a problem<small>Something broken?</small></button>
+<button data-ui="go" data-page="ledger">${ic("book")}Pad record<small>Pads given or received</small></button>
+<button data-ui="go" data-page="mine">${ic("listc")}My tasks<small>${m.length} waiting</small></button></div></div>
+<div class="card"><h3 class="ch">${ic("activity")}Recent activity</h3>${actList(5)}${moreLog()}</div></div>`;
+ return h}
+function dashV(r){const m=mineT(r),sp=spotList(r),ss=Object.keys(SCH).filter(s=>s!==HOME[r]),todo=ss.filter(s=>stat(s).rep!=="Reported and verified");
+ let h=ph("Dashboard",INFO[r]);
+ if(m.length)h+=`<div class="cta info">${ic("shield")}<div><b>${m.length} fix${m.length>1?"es":""} waiting for your check</b><p>Look at the evidence, or confirm on your next visit.</p></div>${go("mine","Check now","pri","right")}</div>`;
+ h+=`<div class="stats">${statCard("shield","To verify",m.length,m.length?"warn":"ok","Fixes to check","mine")}${statCard("eye","Small repairs to check",sp.length,sp.length?"info":"ok","Picked at random","spot")}${statCard("pin","Schools to visit",todo.length,todo.length?"info":"ok","Not yet verified","visit")}${statCard("lock","Your own school",SCH[HOME[r]].n,"navy","You never check it")}</div>`;
+ h+=`<div class="card"><h3 class="ch">${ic("pin")}Visit list</h3><div class="tw"><table class="tbl"><thead><tr><th>School</th><th>Weekly check</th><th>Last visit</th><th></th></tr></thead><tbody>${Object.keys(SCH).map(s=>{const x=stat(s),o=D(s).obs;
+  return `<tr><td><b>${SCH[s].n}</b></td><td>${repBadge(x.rep)}</td><td>${o?`Day ${o.day} by ${PILL[o.by]}`:'<span class="mut">Never</span>'}</td><td>${s===HOME[r]?`<span class="badge b-muted">${ic("lock")}Your own school</span>`:go("visit",o&&o.day>=(D(s).rep?D(s).rep.day:-99)?"View visit":"Start visit","sec sm","right",s)}</td></tr>`}).join("")}</tbody></table></div></div>`;
+ h+=`<div class="card"><h3 class="ch">${ic("activity")}Recent activity at ${SCH[S.school].n}</h3>${actList(5)}${moreLog()}</div>`;
+ return h}
+const repBadge=x=>`<span class="badge b-${x==="Reported and verified"?"ok":x==="Reported, awaiting a visit"?"info":"warn"}">${x}</span>`;
+function dashBO(){const ss=schoolsOf(S.block),T=scopeB("BO"),b=buckets(T),m=mineT("BO"),crit=T.filter(t=>bk(t)==="bad");
+ let h=ph("Dashboard",`Demo Block ${S.block}. ${INFO.BO}`);
+ if(m.length)h+=`<div class="cta warn">${ic("listc")}<div><b>${m.length} task${m.length>1?"s":""} waiting for you</b><p>Schools could not fix these. Accept them so help arrives.</p></div>${go("mine","Open my tasks","pri","right")}</div>`;
+ h+=`<div class="stats">${statCard("school","Schools",ss.length,"navy","In this block","schools")}${statCard("door","Toilets working",`${toiletOK(ss)}/${ss.length}`,"ok","Latest report or visit","schools")}${statCard("clock","Pending",b.warn+b.info,"warn","Open, on time","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","Need attention now","all")}${statCard("ok","Resolved",b.ok,"ok","Closed tasks","all")}</div>`;
+ h+=`<div class="g2">${donut(b,"Task status in this block")}${bars("Open tasks per school",ss.map(s=>{const x=stat(s);return [SCH[s].n,x.open,x.over?"bad":"info"]}),"Red bars have overdue tasks.")}</div>`;
+ h+=`<div class="g2"><div class="card"><h3 class="ch">${ic("alert")}Needs attention</h3>${crit.length?`<ul class="tlist">${crit.map(trow).join("")}</ul>${go("all","See all block tasks","sec sm")}`:empty("ok","Nothing overdue","All tasks in this block are on time.")}</div><div class="card"><h3 class="ch">${ic("activity")}Recent activity</h3>${actList(5)}${moreLog()}</div></div>`;
+ return h}
+function dashDO(){const all=Object.keys(SCH),T=scopeB("DO"),b=buckets(T),m=mineT("DO"),crit=T.filter(open);
+ let h=ph("Dashboard",`Demo District. ${INFO.DO}`);
+ if(m.length)h+=`<div class="cta warn">${ic("listc")}<div><b>${m.length} task${m.length>1?"s":""} reached the district</b><p>Nobody fixed these at block level.</p></div>${go("mine","Open my tasks","pri","right")}</div>`;
+ h+=`<div class="stats">${statCard("chart","Blocks",2,"navy",`${all.length} schools`,"blocks")}${statCard("door","Toilets working",`${toiletOK(all)}/${all.length}`,"ok","Latest report or visit","blocks")}${statCard("up","Sent to district",T.filter(open).length,"warn","Still open","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","At district level","all")}${statCard("ok","Resolved",b.ok,"ok","Closed after reaching district","all")}</div>`;
+ h+=`<div class="g2">${bars("Open tasks per school, by block",[1,2].map(bl=>{const ss=schoolsOf(bl),o=ss.reduce((a,s)=>a+stat(s).open,0);return ["Demo Block "+bl,+(o/ss.length).toFixed(1),ss.some(s=>stat(s).over)?"bad":"info"]}),"Blocks have different numbers of schools, so this compares per school.")}${donut(b,"Tasks that reached the district")}</div>`;
+ h+=`<div class="g2"><div class="card"><h3 class="ch">${ic("alert")}Critical unresolved problems</h3>${crit.length?`<ul class="tlist">${crit.map(trow).join("")}</ul>`:empty("ok","Nothing open at district level","")}</div><div class="card"><h3 class="ch">${ic("activity")}Recent activity</h3>${actList(5)}${moreLog()}</div></div>`;
+ return h}
+function dashOwner(r){const T=scopeB(r),b=buckets(T),m=mineT(r),sup=r!=="BMO",dl=T.filter(open).sort((x,y)=>x.due-y.due);
+ let h=ph("Dashboard",`${r==="DSO"?"Demo District":"Demo Block "+S.block}. ${INFO[r]}`);
+ if(m.length)h+=`<div class="cta warn">${ic(sup?"truck":"wrench")}<div><b>${m.length} task${m.length>1?"s":""} waiting for you</b><p>${sup?"Pads are missing at a school.":"A school needs building work."}</p></div>${go("mine","Open my tasks","pri","right")}</div>`;
+ h+=`<div class="stats">${statCard("listc","My tasks",m.length,m.length?"warn":"ok","Need your action","mine")}${statCard(sup?"truck":"wrench",sup?"Open supply problems":"Open repairs",T.filter(open).length,"info","In your area","all")}${statCard("alert","Overdue",b.bad,b.bad?"bad":"ok","Past the deadline","all")}${statCard("ok",sup?"Delivered":"Resolved",b.ok,"ok","Closed","all")}</div>`;
+ h+=`<div class="g2">${donut(b,sup?"Supply tasks":"Repair tasks")}<div class="card"><h3 class="ch">${ic("clock")}Deadlines</h3>${dl.length?`<ul class="tlist">${dl.map(trow).join("")}</ul>`:empty("ok","No open tasks","")}</div></div>`;
+ h+=`<div class="card"><h3 class="ch">${ic("activity")}Recent activity</h3>${actList(5)}${moreLog()}</div>`;
+ return h}
+function dashAD(){const T=S.it.filter(t=>t.lane==="B"),dl=T.filter(t=>open(t)&&t.dept),den=S.log.filter(x=>x.k==="deny").length,c=S.cfg;
+ let h=ph("Overview",INFO.AD);
+ h+=`<div class="stats">${statCard("school","Schools",Object.keys(SCH).length,"navy","2 blocks")}${statCard("listc","Open tasks",T.filter(open).length,"info","Count only")}${statCard("alert","Long-overdue",dl.length,dl.length?"bad":"ok","Reached the top","overdue")}${statCard("lock","Refused access",den,den?"warn":"ok","Logged attempts","log")}</div>`;
+ h+=`<div class="callout info">${ic("shield")}<div><b>Privacy rule</b><p>The administrator sees numbers, rules and logs only. Problem details and photos stay hidden.</p></div><button class="btn sec" data-a="open">${ic("lock")}Try to open problem details</button></div>`;
+ h+=`<div class="g2"><div class="card"><h3 class="ch">${ic("sliders")}Current rules</h3><ul class="tlist">
+<li class="trow"><div>Weekly check every<small>Schools report on a fixed cycle</small></div><b>${c.week} days</b></li>
+<li class="trow"><div>Days to accept a task<small>Then it moves up a level</small></div><b>${c.accDays}</b></li>
+<li class="trow"><div>Small repairs spot-checked<small>Every Nth closed repair</small></div><b>1 in ${c.spotN}</b></li>
+<li class="trow"><div>Officers see small-repair numbers<small>Never details or photos</small></div><b>${c.vis===2?"Yes":"No"}</b></li></ul>${go("settings","Change rules","sec sm","sliders")}</div>
+<div class="card"><h3 class="ch">${ic("activity")}Audit log</h3>${actList(5)}${moreLog()}</div></div>`;
+ return h}
+
+/* ---------- pages ---------- */
+function pgReport(){const s=S.school,rp=D(s).rep,due=!rp||S.day-rp.day>=S.cfg.week;
+ if(due)return ph("Weekly check",`${SCH[s].n}. Look and count for yourself, then answer.`)+`<div class="card">${rp?`<div class="callout info">${ic("info")}<div>Your last check was on day ${rp.day}. A new one is due.</div></div>`:""}${qform("r_",false)}${S.err.r?ferr(S.err.r):""}
+<div class="acts"><button class="btn pri lg" data-a="rep">${ic("send")}Submit weekly check</button><button class="btn sec" data-a="fillr">Fill example answers</button></div><p class="mut sm" style="margin-top:12px">${ic("wifioff","sm")} Works without internet. It is sent when you are back online.</p></div>`;
+ return ph("Weekly check",SCH[s].n)+`<div class="callout ok">${ic("ok")}<div><b>Weekly check sent on day ${rp.day}</b><p>The next one is due on day ${rp.day+S.cfg.week}. A verifier will compare it with what they see on a visit.</p></div></div>
+<div class="card"><h3 class="ch">${ic("clipboard")}Your answers</h3><div class="fac one">${CHK.map(([k])=>`<div class="fi-row"><span class="fic">${ic(CIC[k])}</span><span>${CN[k]}</span><span>${facVal(rp,k)}</span></div>`).join("")}</div>
+<div class="acts">${go("ledger","Update pad record","pri","book")}<button class="btn sec" data-a="nextrep">${ic("ff")}Skip to next week (demo)</button></div></div>`}
+function pgLedger(){const s=S.school,rp=D(s).rep;let h=ph("Pad record",`${SCH[s].n}. Write down pads given out or received. Numbers only, never names.`);
+ if(!rp)return h+`<div class="card">${empty("book","Do the weekly check first","The pad record starts from the number you count in the weekly check.",go("report","Start weekly check","pri","clipboard"))}</div>`;
+ const L=led(s),ty=dv("l_t")==="in"?"in":"out",supOpen=S.it.some(x=>x.s===s&&x.key==="sup"&&open(x));
+ h+=`<div class="stats">${statCard("pkg","Counted",rp.p,"navy","In weekly check, day "+rp.day)}${statCard("minus","Given out",L.out,"info","To girls")}${statCard("truck","Received",L.inn,"info","From supply")}${statCard("calc","Should be left",L.exp,"ok","Counted − given + received")}</div>`;
+ h+=`<div class="card"><h3 class="ch">${ic("plus")}Add an entry</h3><div class="seg" role="group" aria-label="Type of entry"><button data-a="yn" data-i="l_t:out" aria-pressed="${ty==="out"}">Given out to girls</button><button data-a="yn" data-i="l_t:in" aria-pressed="${ty==="in"}">Received from supply</button></div>
+<div class="field"><label class="lbl" for="l_n">How many pads?</label><input id="l_n" type="number" min="1" inputmode="numeric" placeholder="Number of pads" value="${esc(dv("l_n"))}"></div>${S.err.l?ferr(S.err.l):""}<div class="acts"><button class="btn pri" data-a="led">${ic("check")}Save entry</button></div></div>`;
+ h+=`<div class="card"><h3 class="ch">${ic("truck")}Pads did not arrive?</h3>${supOpen?`<div class="callout info">${ic("info")}<div>A supply problem is already reported. The block supply owner is handling it.</div></div>`:`<p class="mut">If expected pads did not come, tell the block supply owner. This is not the school’s fault.</p><div class="acts"><button class="btn sec" data-a="supgap">${ic("alert")}Report missing supply</button></div>`}</div>`;
+ const E=D(s).ledger;
+ h+=`<div class="card"><h3 class="ch">${ic("book")}History</h3>${E.length?`<div class="tw"><table class="tbl" style="min-width:0"><thead><tr><th>Day</th><th>Entry</th><th>Pads</th></tr></thead><tbody>${E.slice().reverse().map(x=>`<tr><td>Day ${x.d}</td><td>${x.type==="out"?"Given out":"Received"}</td><td><b>${x.n}</b></td></tr>`).join("")}</tbody></table></div>`:empty("book","No entries yet","")}</div>`;
+ return h}
+function pgMine(r){const L=mineT(r),v=isVr(r);
+ const h=ph(v?"To verify":"My tasks",v?"Fixes waiting for your check. Verifiers take turns, so the same person never checks a case twice in a row.":"Problems that need your action. Use the buttons on each task.");
+ if(!L.length)return h+`<div class="card">${empty("ok","Nothing to do right now",r==="HM"?"Do the weekly check, or move time forward in Demo controls to see what happens.":"Move time forward in Demo controls, or view the demo as another person.",r==="HM"?go("report","Weekly check","pri","clipboard"):`<button class="btn sec" data-a="tick1">${ic("ff")}Move forward 1 day</button>`)}</div>`;
+ return h+L.map(t=>taskHtml(t,r!=="HM")).join("")}
+function pgAll(r){const A=scopeB(r),o=A.filter(open).length,f=S.ui.flt,L=A.filter(t=>f==="all"||(f==="open"?open(t):!open(t))).sort((a,b)=>open(b)-open(a));
+ return ph(tabsOf(r).find(x=>x[0]==="all")[1],`${o} open, ${A.length-o} closed. This list is for viewing. To act, open ${isVr(r)?"To verify":"My tasks"}.`,`<div class="seg" role="group" aria-label="Show">${[["all","All"],["open","Open"],["closed","Closed"]].map(([k,l])=>`<button data-a="flt" data-i="${k}" aria-pressed="${f===k}">${l}</button>`).join("")}</div>`)
+  +(L.length?L.map(t=>taskHtml(t,r!=="HM")).join(""):`<div class="card">${empty("inbox","Nothing here","No tasks match this filter.")}</div>`)}
+function qblock(n,q,ctrl){return `<div class="qb"><div class="qh"><span class="qn">${n}</span><b>${q}</b></div>${ctrl}</div>`}
+function laMsg(){const m=S.err.la;if(!m)return"";if(isErr(m))return ferr(m);
+ if(/safety|privacy/i.test(m))return `<div class="callout bad">${ic("alert")}<div><b>Safety first</b><p>${m}</p></div></div>`;
+ return `<div class="callout ok">${ic("ok")}<div>${m}</div></div>`}
+function pgLaneA(){const s=S.school,la=S.it.filter(i=>i.lane==="A"&&i.s===s).reverse(),q1=dv("lq1"),qt=dv("lqt"),qp=dv("lqp");
+ let f=`<div class="card"><h3 class="ch">${ic("wrench")}Report a problem</h3><p class="mut" style="margin-top:0">One question at a time. The app decides if your school can fix it as a small repair, or if it goes to officers.</p>`;
+ f+=qblock(1,"Does it stop pads, the girls’ toilet, water, soap or disposal from working?",ynb2("lq1"));
+ if(q1==="yes")f+=qblock(2,"Which one stops working?",choice("lqk",CHK.map(([k])=>[k,CN[k]])))+`<div class="callout warn">${ic("alert")}<div><b>This is too important for a small repair.</b><p>It will be sent as a follow-up task, and an independent visitor will check it.</p></div></div><div class="acts"><button class="btn pri lg" data-a="lalog">${ic("send")}Send as follow-up task</button></div>`;
+ if(q1==="no"){f+=qblock(2,"What is the problem?",choice("lqt",Object.keys(S.cfg.la).map(k=>[k,S.cfg.la[k].n]).concat([["other","Something else (not on this list)"]])));
+  if(qt)f+=qblock(3,"Where is it?",choice("lqp",PLACES.map(p=>[p,p])));
+  if(qt&&qp)f+=qblock(4,"Is any girl’s safety or privacy at risk?",ynb2("lq3"))+`<div class="field"><label class="lbl" for="lqn">Note (optional)</label><input id="lqn" type="text" placeholder="For example: tap near the handwash area" value="${esc(dv("lqn"))}"></div><div class="acts"><button class="btn pri lg" data-a="lalog">${ic("check")}Check and save</button></div>`}
+ f+=laMsg()+`</div>`;
+ return ph("Report a problem",`${SCH[s].n}. Small repairs stay in your school. Serious problems go to officers.`)+f+`<h2 class="sec-t">Your small repairs</h2>`+(la.length?la.map(laHtml).join(""):`<div class="card">${empty("wrench","No small repairs yet","Use the form above when something small breaks.")}</div>`)}
+function compare(s){const R=D(s).rep,o=D(s).obs,L=led(s);let n=0;
+ const html=CHK.map(([k])=>{let said,saw,diff,bad=false;
+  if(k==="p"){said=R?`${R.p} counted, ${L.out} given out, ${L.inn} received → ${L.exp} expected`:"No report";saw=`${o.p} pads`;diff=R&&o.p!==L.exp}
+  else{said=R?(R[k]==="yes"?"Yes":"No"):"No report";saw=o[k]==="yes"?"Yes":"No";diff=R&&R[k]!==o[k];bad=o[k]==="no"}
+  if(diff)n++;
+  const res=diff?`<span class="badge b-bad">${ic("alert")}Different</span>`:!R?'<span class="badge b-muted">Nothing to compare</span>':bad?'<span class="badge b-warn">Match, not working</span>':`<span class="badge b-ok">${ic("check")}Match</span>`;
+  return `<div class="cmp${diff?" diff":""}"><div class="cmp-n"><span class="fic">${ic(CIC[k])}</span>${CN[k]}</div><div class="cmp-c"><small>${ic("clipboard")}School said</small><span>${said}</span></div><div class="cmp-c"><small>${ic("shield")}Visitor saw</small><span>${saw}</span></div><div class="cmp-r">${res}</div></div>`}).join("");
+ return{n,html}}
+function pgVisit(){const r=S.role,s=S.school,own=s===HOME[r],o=D(s).obs;
+ let h=ph("School visit","Look for yourself first. The school’s own answers stay hidden until you save, so your check stays independent.");
+ h+=`<div class="card"><span class="lbl">Choose a school</span><div class="opts">${Object.keys(SCH).map(k=>k===HOME[r]?`<span class="opt dis" title="You never check your own school">${ic("lock","sm")}${SCH[k].n} (your own)</span>`:`<button class="opt" data-ui="go" data-page="visit" data-school="${k}" aria-pressed="${k===s}">${k===s?ic("check","sm"):""}${SCH[k].n}</button>`).join("")}</div></div>`;
+ if(own)return h+`<div class="callout bad">${ic("lock")}<div><b>This is your own school.</b><p>Verifiers never check their own school. Choose another school above.</p></div></div>`;
+ if(!o)return h+`<div class="card"><div class="ch-row"><h3 class="ch">${ic("eye")}What do you see at ${SCH[s].n}?</h3><button class="btn ghost sm" data-a="peek">${ic("lock","sm")}See school’s answers first</button></div>${qform("o_",true)}${S.err.o?ferr(S.err.o):""}
+<div class="acts"><button class="btn pri lg" data-a="obs">${ic("shield")}Save what I saw</button><button class="btn sec" data-a="fillo">Fill example answers</button></div></div>`;
+ const c=compare(s);
+ h+=`<div class="callout ${c.n?"warn":"ok"}">${ic(c.n?"alert":"ok")}<div><b>${c.n?`${c.n} difference${c.n>1?"s":""} found`:"Everything matches the school’s report"}</b><p>${c.n?"Each difference becomes a follow-up task. A difference is never treated as lying.":"Any check that is not working still becomes a task."}</p></div></div>`;
+ h+=`<div class="card"><div class="ch-row"><h3 class="ch">${ic("clipboard")}School said vs. visitor saw</h3><span class="mut sm">Visited by ${SH[o.by]} on day ${o.day}</span></div>${c.html}
+${S.day>o.day?`<div class="acts"><button class="btn sec" data-a="newvisit">${ic("plus")}Start a new visit</button></div>`:`<p class="mut sm">You can start a new visit from tomorrow (+1 day in Demo controls).</p>`}</div>`;
+ const opn=S.it.filter(t=>t.lane==="B"&&t.s===s&&open(t));
+ if(opn.length)h+=`<div class="card"><h3 class="ch">${ic("listc")}Open tasks at this school</h3><ul class="tlist">${opn.map(trow).join("")}</ul><p class="mut sm">Next: view the demo as the person who must act.</p></div>`;
+ const cl=S.it.filter(t=>t.lane==="B"&&t.s===s&&t.st==="Closed");
+ if(cl.length)h+=`<h2 class="sec-t">Fixed problems at this school</h2><p class="mut">If you find one broken again, press <b>Problem came back</b>.</p>`+cl.map(t=>taskHtml(t,false)).join("");
+ return h}
+function pgSpot(r){const L=spotList(r);const h=ph("Check small repairs","Schools close small repairs themselves. A few are picked at random for you to look at on a normal visit.");
+ if(!L.length)return h+`<div class="card">${empty("eye","Nothing to check right now","When schools close small repairs, some are picked for you.")}</div>`;
+ return h+L.map(i=>`<article class="card task t-info"><div class="task-h"><div><div class="eyebrow">${ic("wrench")}Small repair · ${SCH[i.s].n}</div><h3>${S.cfg.la[i.type].n}</h3></div><span class="badge b-ok">Closed by school, day ${i.closedDay}</span></div>
+<dl class="meta"><div><dt>${ic("pin")}Where</dt><dd>${i.place}</dd></div>${i.cant?`<div><dt>${ic("info")}Note</dt><dd>The other verifier could not tell.</dd></div>`:""}</dl>
+${i.photo?`<div class="evid"><div><b>${ic("camera")}School’s photo</b><p class="mut">A photo helps, but it is not proof. Look for yourself.</p></div><img src="${i.photo}" alt="Repair photo"></div>`:`<p class="mut sm">No photo for this example.</p>`}${S.err[i.id]?ferr(S.err[i.id]):""}
+<div class="acts"><button class="btn pri" data-a="sc_ok" data-i="${i.id}">${ic("check")}It is fixed</button><button class="btn danger" data-a="sc_no" data-i="${i.id}">${ic("x")}Not fixed</button><button class="btn sec" data-a="sc_ct" data-i="${i.id}">Cannot tell</button></div></article>`).join("")}
+function pgSchools(){const ss=schoolsOf(S.block);
+ return ph(`Schools in Demo Block ${S.block}`,"Status of every school. Small repairs show numbers only, never details or photos.")+`<div class="card"><div class="tw"><table class="tbl"><thead><tr><th>School</th><th>Weekly check</th><th>Girls’ toilet</th><th>Open</th><th>No one accepted</th><th>Overdue</th><th>Came back</th><th>Small repairs</th></tr></thead><tbody>${ss.map(s=>{const x=stat(s),l=latest(s);
+  return `<tr><td><b>${SCH[s].n}</b></td><td>${repBadge(x.rep)}</td><td>${l?`${l.t==="yes"?'<span class="pill p-ok">Working</span>':'<span class="pill p-bad">Not working</span>'}<br><small class="mut">${l===D(s).obs?"verified":"school says"}</small>`:'<span class="mut">No data</span>'}</td><td>${x.open}</td><td>${x.noown?`<span class="txt-bad">${x.noown}</span>`:0}</td><td>${x.over?`<span class="txt-bad">${x.over}</span>`:0}</td><td>${x.re}</td><td class="sm">${laCell(x.la)}</td></tr>`}).join("")}</tbody></table></div><p class="mut sm">${S.cfg.vis===1?"Small-repair numbers are hidden by the department’s rules.":"Toilet status uses the latest report or visit."}</p></div>`}
+function pgBlocks(){const rows=[1,2].map(b=>{const ss=schoolsOf(b),X=ss.map(stat),sum=f=>X.reduce((a,x)=>a+f(x),0);
+  const la={n:sum(x=>x.la.n),ont:sum(x=>x.la.ont),ov:sum(x=>x.la.ov),sp:sum(x=>x.la.sp),pend:sum(x=>x.la.pend)};
+  return {b,n:ss.length,open:sum(x=>x.open),per:(sum(x=>x.open)/ss.length).toFixed(1),noown:sum(x=>x.noown),over:sum(x=>x.over),re:sum(x=>x.re),closed:sum(x=>x.closed),la}});
+ return ph("Compare blocks","Blocks have different numbers of schools, so compare “Open per school”, not raw totals.")+`<div class="card"><div class="tw"><table class="tbl"><thead><tr><th>Block</th><th>Schools</th><th>Open</th><th>Open per school</th><th>No one accepted</th><th>Overdue</th><th>Came back</th><th>Closed</th><th>Small repairs</th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>Demo Block ${x.b}</b></td><td>${x.n}</td><td>${x.open}</td><td><b>${x.per}</b></td><td>${x.noown?`<span class="txt-bad">${x.noown}</span>`:0}</td><td>${x.over?`<span class="txt-bad">${x.over}</span>`:0}</td><td>${x.re}</td><td>${x.closed}</td><td class="sm">${laCell(x.la)}</td></tr>`).join("")}</tbody></table></div></div>`
+ +bars("Open tasks per school",rows.map(x=>["Demo Block "+x.b,+x.per,x.over?"bad":"info"]))}
+function pgSettings(){const c=S.cfg,I=(id,v,l,hint)=>`<div class="set"><label for="${id}"><b>${l}</b>${hint?`<small>${hint}</small>`:""}</label><input id="${id}" type="number" min="1" inputmode="numeric" value="${esc(dv(id)!==""?dv(id):v)}"></div>`;
+ return ph("Rules & time limits","In real life only the department sets these numbers. Change one and press Save rules.")
+ +`<div class="card"><h3 class="ch">${ic("eye")}What officers can see</h3><div class="set"><label for="c_vis"><b>Can block and district officers see small-repair numbers?</b><small>They never see details or photos.</small></label><select id="c_vis" class="inp"><option value="2"${c.vis===2?" selected":""}>Yes, numbers only</option><option value="1"${c.vis===1?" selected":""}>No</option></select></div></div>
+<div class="card"><h3 class="ch">${ic("clipboard")}Weekly check and photos</h3>${I("c_week",c.week,"Weekly check every (days)")}${I("c_stale",c.stale,"A weekly check is old after (days)")}${I("c_retain",c.retain,"Keep photos for (days)","Counted from when the problem is closed")}${I("c_verDays",c.verDays,"A verifier check is late after (days)")}</div>
+<div class="card"><h3 class="ch">${ic("wrench")}Small repairs</h3>${I("c_spotN",c.spotN,"Spot-check every Nth closed repair","1 means every repair is checked")}${I("c_recLimit",c.recLimit,"Times a repair can repeat before it is sent up")}${I("c_recDays",c.recDays,"…counted over how many days")}${Object.keys(c.la).map(k=>I("c_la_"+k,c.la[k].d,"Days to fix: "+c.la[k].n)).join("")}</div>
+<div class="card"><h3 class="ch">${ic("flag")}Follow-up tasks</h3>${I("c_accDays",c.accDays,"Days to accept a task","After this it moves up a level")}${Object.keys(c.b).map(k=>I("c_b_"+k,c.b[k],"Days to fix: "+FIXN[k])).join("")}</div>
+${S.err.c?`<div class="callout ok">${ic("ok")}<div>${S.err.c}</div></div>`:""}<div class="acts"><button class="btn pri lg" data-a="cfgsave">${ic("check")}Save rules</button></div>`}
+function pgOverdue(){const dl=S.it.filter(t=>t.lane==="B"&&open(t)&&t.dept);
+ return ph("Long-overdue list","Problems still not fixed after reaching the top level. Only school, type and age are shown.")+`<div class="card">${dl.length?`<div class="tw"><table class="tbl"><thead><tr><th>School</th><th>Problem</th><th>Who must act</th><th>Days open</th></tr></thead><tbody>${dl.map(t=>`<tr><td><b>${SCH[t.s].n}</b></td><td>${esc(t.type)}</td><td>${SH[t.owner]}</td><td><span class="txt-bad">${S.day-t.day0}</span></td></tr>`).join("")}</tbody></table></div>`:empty("ok","Nothing on the list","")}</div>`}
+function pgLog(r){const lg=S.log.filter(visible).slice(0,200);
+ return ph(r==="AD"?"Audit log":"Activity",r==="AD"?"Refused access attempts, rule changes and system events. No case content.":"Everything recorded, newest first. Nothing is ever deleted. You only see what this person is allowed to see.")+`<div class="card">${actList(200)}</div>`}
+function pageHtml(r,sub){return ({dash:()=>dash(r),report:pgReport,ledger:pgLedger,mine:()=>pgMine(r),all:()=>pgAll(r),lanea:pgLaneA,visit:pgVisit,spot:()=>pgSpot(r),schools:pgSchools,blocks:pgBlocks,settings:pgSettings,overdue:pgOverdue,log:()=>pgLog(r)}[sub]||(()=>dash(r)))()}
+
+/* ---------- render ---------- */
+function render(){
+ if(S.ui.loading&&S.dr["photo_"+S.ui.loading])S.ui.loading=null;
+ const r=S.role,sub=curSub(r);
+ document.getElementById("side").innerHTML=sideHtml(r,sub);
+ document.getElementById("top").innerHTML=topHtml(r,sub);
+ document.body.classList.toggle("col",!!S.ui.col);
+ document.body.classList.toggle("drawer",!!S.ui.drawer);
+ VO=sub==="all";
+ document.getElementById("app").innerHTML=`<div class="page">${pageHtml(r,sub)}</div><footer class="foot">${ic("shield","sm")}<span>Practice version with made-up schools and people. No girl’s name or personal data is ever collected. Photos show fixtures only, never people.</span></footer>`;
+ VO=false;
+ save()}
+
+/* ---------- feedback: toasts & confirmations ---------- */
+function toast(tn,title,msg){const box=document.getElementById("toasts"),el=document.createElement("div");
+ el.className="toast "+tn;el.setAttribute("role",tn==="bad"?"alert":"status");
+ el.innerHTML=`${ic({ok:"ok",bad:"xc",warn:"alert",info:"info"}[tn])}<div><b>${title}</b><p>${msg}</p></div><button aria-label="Dismiss">${ic("x","sm")}</button>`;
+ el.querySelector("button").onclick=()=>el.remove();box.appendChild(el);while(box.children.length>3)box.firstChild.remove();
+ setTimeout(()=>el.remove(),tn==="bad"?7000:4500)}
+const isErr=m=>/^(Please|Enter|A supply gap is already|The next weekly|For each)/.test(m);
+const OKM={rep:"Weekly check sent.",led:"Pad record saved.",supgap:"Missing supply reported to the block supply owner.",larep:"Marked as repair started.",obs:"Visit saved. Compare the answers below.",sc_ok:"Marked as fixed.",sc_no:"Not fixed. A follow-up task was created for the school.",sc_ct:"Noted. The other verifier checks it next.",rea:"Task reassigned.",expl:"Pad record updated.",evno:"Sent back to be fixed again.",no:"Sent back to be fixed again.",back:"Problem marked as back. The task reopened.",reopen:"Problem marked as back. The task reopened.",nextrep:"Moved to the next report day.",reset:"Demo restarted with the sample data.",newvisit:"New visit started.",fillr:"Example answers filled in. Check them, then submit.",fillo:"Example answers filled in. Check them, then save.",tick1:"Moved forward 1 day.",tick7:"Moved forward 7 days."};
+function notify(a,escN,nq){
+ if(S.flash){toast("bad","Not allowed",S.flash.replace(/^Not allowed: /,""));return}
+ const errs=Object.values(S.err).filter(Boolean),bad=errs.find(isErr);
+ if(bad){toast("bad","Please check",bad);return}
+ if(S.msg){toast("ok","Done",S.msg);return}
+ if(errs.length){const m=errs[0];toast(/safety|privacy/i.test(m)?"warn":"ok",a==="cfgsave"?"Rules saved":"Done",m);return}
+ if(a==="off"){toast("info",S.off?"Offline mode":"Back online",S.off?"Actions are saved on this phone and sent later.":`You are online again.${nq?" Press Send to send waiting items.":""}`);return}
+ if(a==="sync"){toast("ok","Sent",nq?`${nq} saved item${nq>1?"s were":" was"} sent.`:"Nothing was waiting.");return}
+ let m=OKM[a];if(!m)return;
+ if(["tick1","tick7","nextrep"].includes(a)){const n=S.log.filter(x=>x.k==="esc").length-escN;if(n>0){toast("warn","Time moved on",`${m} ${n} task update${n>1?"s":""}: deadlines passed and items moved up.`);return}}
+ toast(a.startsWith("fill")?"info":"ok","Done",m)}
+function run(a,i){const escN=S.log.filter(x=>x.k==="esc").length,nq=S.log.filter(x=>x.q).length;
+ if(a==="tab"||a==="role")S.ui.drawer=false;
+ act(a,i);notify(a,escN,nq);
+ if(a==="tab"||a==="role")focusTop()}
+function focusTop(){window.scrollTo(0,0);const h=document.querySelector("#app h1");if(h){h.setAttribute("tabindex","-1");h.focus({preventScroll:true})}}
+const tk=i=>S.it.find(x=>x.id===i);
+const CONF={
+ reset:()=>({t:"Start the demo again?",m:"All changes in this demo will be lost and the sample data comes back.",ok:"Start over",d:1}),
+ up:i=>{const t=tk(i);return {t:"Send this task up for help?",m:`It moves from the ${SH[t.owner].toLowerCase()} to the ${SH[t.chain[t.lvl+1]]?SH[t.chain[t.lvl+1]].toLowerCase():"next level"}. This is a request for help, not a punishment.`,ok:"Send up"}},
+ rea:()=>({t:"Reassign this task?",m:"It goes to the person who handles this kind of work in your block.",ok:"Reassign"}),
+ reopen:()=>({t:"Is the problem back?",m:"The task reopens and goes back to the school. Its history is kept.",ok:"Yes, reopen",d:1}),
+ back:()=>({t:"Is the problem back?",m:"The task reopens and goes back to the school. Its history is kept.",ok:"Yes, reopen",d:1}),
+ evno:()=>({t:"Send back to be fixed?",m:"The evidence is not enough. The task goes back to the school.",ok:"Send back",d:1}),
+ no:()=>({t:"Not fixed?",m:"The task goes back to the person who must fix it.",ok:"Send back",d:1}),
+ sc_no:()=>({t:"Mark as not fixed?",m:"A follow-up task is created for the school, and a verifier must check it again.",ok:"Not fixed",d:1}),
+ supgap:()=>({t:"Report missing supply?",m:"A task is sent to the block supply owner. The school is not blamed.",ok:"Report it"}),
+ cfgsave:()=>({t:"Save the new rules?",m:"New numbers apply to new tasks and to the coming days.",ok:"Save rules"})};
+let lastFocus=null;
+function confirmBox(c,yes){const m=document.getElementById("modal");lastFocus=document.activeElement;
+ m.innerHTML=`<div class="modal"><div class="dlg${c.d?" danger":""}" role="dialog" aria-modal="true" aria-labelledby="dlgt" aria-describedby="dlgm"><h3 id="dlgt">${ic(c.d?"alert":"info")}${c.t}</h3><p id="dlgm">${c.m}</p><div class="acts"><button class="btn sec" id="dlgno">Cancel</button><button class="btn ${c.d?"dangerf":"pri"}" id="dlgyes">${c.ok}</button></div></div></div>`;
+ const close=()=>{m.innerHTML="";if(lastFocus&&document.body.contains(lastFocus))lastFocus.focus()};
+ m.querySelector(".modal").addEventListener("click",e=>{if(e.target.classList.contains("modal"))close()});
+ document.getElementById("dlgno").onclick=close;
+ document.getElementById("dlgyes").onclick=()=>{m.innerHTML="";yes()};
+ document.getElementById("dlgyes").focus()}
+
+/* ---------- events ---------- */
+function uiAct(u,d){
+ if(u==="openside"){S.ui.drawer=true;render();const f=document.getElementById("rolesel");if(f)f.focus();return}
+ if(u==="closeside"){S.ui.drawer=false;render();return}
+ if(u==="collapse"){S.ui.col=!S.ui.col;render();return}
+ if(u==="go"){grab();if(d.school&&d.school!==S.school){S.school=d.school;clearDr()}S.ui.sub[S.role]=d.page;S.ui.drawer=false;S.err={};render();focusTop()}}
+document.addEventListener("click",e=>{
+ const u=e.target.closest("[data-ui]");if(u){uiAct(u.dataset.ui,u.dataset);return}
+ const b=e.target.closest("[data-a]");if(!b||b.disabled)return;
+ const a=b.dataset.a,i=b.dataset.i;
+ if(CONF[a]){confirmBox(CONF[a](i),()=>run(a,i));return}
+ run(a,i)});
+document.addEventListener("change",e=>{const f=e.target;if(!f)return;
+ if(f.type==="file"&&f.files&&f.files[0]){const id=f.id.slice(3),file=f.files[0];
+  if(!/^image\//.test(file.type)){toast("bad","Not a photo","Please choose a photo (JPG or PNG).");f.value="";return}
+  grab();S.ui.loading=id;render();processPhoto(id,file);
+  setTimeout(()=>{if(S.ui.loading===id&&!S.dr["photo_"+id]){S.ui.loading=null;render();toast("bad","Photo could not be read","Please try a JPG or PNG photo.")}},8000);return}
+ if(f.id==="ctxs"){grab();S.school=f.value;clearDr();S.err={};render()}
+ else if(f.id==="ctxb"){S.block=+f.value;render()}
+ else if(f.id==="rolesel")run("role",f.value)});
+document.addEventListener("input",e=>{if(/^(r|o)_p$/.test(e.target.id))updProg()});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;
+ const m=document.getElementById("modal");if(m.innerHTML){m.innerHTML="";if(lastFocus)lastFocus.focus();return}
+ if(S.ui.drawer){S.ui.drawer=false;render()}});
+S=load();S.ui.drawer=false;S.ui.loading=null;S.flash="";S.msg="";
+render();
+</script>
+</body>
+</html>
